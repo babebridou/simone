@@ -19,8 +19,8 @@ function SampleReport(viewId){
 	    var height = 600;
 	    var radius = Math.min(width, height) / 2;
 	    var temperatureAngle = Math.PI/3;
-		var luminosityAngle = temperatureAngle + 2*Math.PI/3;
-		var airAngle = temperatureAngle + 4*Math.PI/3;
+	    var airAngle = temperatureAngle + 2*Math.PI/3;
+		var luminosityAngle = temperatureAngle + 4*Math.PI/3;
 	    
 		pie.startAngle(temperatureAngle-2*Math.PI/3);
 		pie.endAngle(temperatureAngle-2*Math.PI/3+Math.PI*2);
@@ -28,7 +28,8 @@ function SampleReport(viewId){
 	    var baseArc = d3.svg.arc();
 		var arc = d3.svg.arc()
 	    .outerRadius(radius)
-	    .innerRadius(radius/2);
+//	    .innerRadius(radius/2);
+		.innerRadius(0);
 		var arcModule = function(i){
 			var outerRadius = ((.60*radius-10)*(i)+(.60*radius-30)*(1-i));
 			var innerRadius = 30;
@@ -58,30 +59,58 @@ function SampleReport(viewId){
 		});
 	    
 	    piesvg.selectAll("path.arc")
-		.data(pie(model))
-		.transition().duration(300)
-		.style("fill", function(d,i){
-			return d.data.color;
-		})
-		//changes radius of circle and length of arc
-//		.attrTween("d", function (d) {
-//			console.debug("tweening ",d);
-//			var isDeployed = 0;
-//			var j = d3.interpolate(0, this._currentRadius);
-//			var i = d3.interpolate(this._current, d);
-//            this._currentRadius = j(1);
-//            this._current = i(1);
-//            return function (t) {
-//                return arcModule(j(t))(i(t));
-//            };
-//		});
-//	    var lengthLollipop = 200;
-	    var radiusLollipop = 20;
+			.data(pie(model))
+			.attr("id",function(d,i){return "arcPath_"+i;})
+			.transition().duration(300)
+			.style("fill", function(d,i){
+				return d.data.color;
+			})
+		
+		var outerText = pieGArc.selectAll("text.arc.outer").data(pie(model));
+		var groupOuterText = outerText.enter();
+		groupOuterText.append("defs").append("path")
+		    .attr("id", function(d,i){return "text-path_"+i;})
+		    .attr("d", arcModule(2.5));
+
+		groupOuterText
+			.append("text")
+			.attr("class","arc outer")
+			.attr("font-size","60px")
+			.attr("dy", ".35em")
+			.style("text-anchor", "middle")
+			.style("fill", "rgba(0,0,0,.1)")
+			.style("stroke" ,"rgba(0,0,0,.2)")
+			.style("font-family","Oxygen")
+//			.text(function(d,i) { 
+//					var pieitem = pie(model)[i];
+//					if(pieitem.endAngle-pieitem.startAngle < 0.5){
+//						return "";
+//					} else {
+//						return d.data.label; 
+//					}
+//				})
+			.append("textPath")
+//				.attr("stroke","rgba(0,0,0,.8)")
+				.attr("startOffset","25%")
+			    .attr("xlink:href", function(d,i){ return "#text-path_"+i})
+			.text(function(d,i) { 
+					var pieitem = pie(model)[i];
+					if(pieitem.endAngle-pieitem.startAngle < 0.5){
+						return "";
+					} else {
+						return d.data.label; 
+					}
+				})
+		outerText.exit().remove();
+		
 		
 		var d3LollipopLine = d3.svg.line.radial();
 		
 		
-		var paint = function(baseAngle, groupClassName, lineClassName, lengthLollipop, dasharray, strokecolor){
+		
+		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale){
+			var radiusLollipop = 20;
+			var lineClassName = groupClassName+"Line";
 		    var temperatureGroup = piesvg.selectAll("g."+groupClassName).data([[[0,0], [lengthLollipop,baseAngle]]]);
 		    temperatureGroup.enter()
 			.append("g")
@@ -92,7 +121,7 @@ function SampleReport(viewId){
 			temperatureLine
 				.enter().append("path").attr("class", lineClassName)
 				.style("fill","#000000")
-				.style("stroke","#000000")
+				.style("stroke",lineColor)
 				.style("stroke-width",4);
 			temperatureLine.exit().remove();
 		    temperatureLine
@@ -100,6 +129,17 @@ function SampleReport(viewId){
 				.attr("d",function(d){var t = d3LollipopLine(d);
 				return t;})
 				;
+		    
+		    var temperatureLineEnd = temperatureGroup.selectAll("path."+lineClassName+"End").data([[[lengthLollipop+radiusLollipop,baseAngle],[300,baseAngle]]]);
+			temperatureLineEnd
+				.enter().append("path").attr("class", lineClassName+"End")
+				.style("fill","#000000")
+				.style("stroke",lineColor)
+				.style("stroke-width",4);
+			temperatureLineEnd.exit().remove();
+		    temperatureLineEnd
+				.transition().duration(600)
+				.attr("d",function(d){var t = d3LollipopLine(d);return t;});
 
 		    var cx = Math.cos(baseAngle-Math.PI/2)*lengthLollipop;
 			var cy = Math.sin(baseAngle-Math.PI/2)*lengthLollipop;
@@ -118,22 +158,56 @@ function SampleReport(viewId){
 				.attr("r", function(d){return d.r;})
 			    .attr("cx", function(d){return d.cx;})
 			    .attr("cy", function(d){return d.cy;});
-		    
+
+			
+			var lineFunc = d3.svg.line.radial();
+			var angleStep = (Math.PI*2/3)/24;
+			var historyLineGroupName = groupClassName+"HistoryLineGroup";
+			var historyLineName = groupClassName+"HistoryLine";
+			var historyLineGroup = piesvg.selectAll("g."+historyLineGroupName).data([{place:"holder"}]);
+			historyLineGroup.enter().append("g").attr("class", historyLineGroupName);
+			historyLineGroup.exit().remove();
+			var historyLine = historyLineGroup.selectAll("path."+historyLineName).data(history);
+			historyLine.enter().append("path").attr("class", historyLineName)
+				.style("stroke",lineColor)
+				.style("stroke-width",4)
+				.attr("d", function(d,i){
+					if(i==0){
+						return lineFunc([[lengthLollipop,baseAngle],[lengthLollipop,baseAngle]]);
+					} else {
+						return lineFunc([[scale(d),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i-1)*angleStep]]);
+					}
+				});
+			historyLine.exit().remove();
+			historyLine.transition().duration(1990)
+			//.delay(function(d,i){if(i<history.length-1){return 0} else return 600;})
+				.style("stroke",lineColor)
+				.attr("d", function(d,i){
+					if(i==0){
+						return lineFunc([[lengthLollipop,baseAngle],[lengthLollipop,baseAngle]]);
+					} else {
+						return lineFunc([[scale(history[i-1]),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i)*angleStep]]);
+					}
+				});
 		}
+		
 		var temperatureScale = d3.scale.linear();
 		temperatureScale.domain([Math.min(model[0].min,model[0].target),Math.max(model[0].max,model[0].target)]);
 		temperatureScale.range([150,250]);
-		var luminosityScale = d3.scale.linear();
-		luminosityScale.domain([5,25]);
-		luminosityScale.range([100,200]);
 		var airScale = d3.scale.linear();
-		airScale.domain([5,25]);
-		airScale.range([100,200]);
+		airScale.domain([Math.min(model[1].min,model[1].target),Math.max(model[1].max,model[1].target)]);
+		airScale.range([150,250]);
+		var luminosityScale = d3.scale.linear();
+		luminosityScale.domain([Math.min(model[2].min,model[2].target),Math.max(model[2].max,model[2].target)]);
+		luminosityScale.range([150,250]);
 		console.debug("temp length",temperatureScale(model[0].value));
-		paint(temperatureAngle, "temperatureTarget", "temperatureTargetLine", temperatureScale(model[0].target), "10,10", "black");
-		paint(temperatureAngle, "temperature", "temperatureLine", temperatureScale(model[0].value), false, "deepskyblue");
-		paint(luminosityAngle, "luminosity", "luminosityLine", luminosityScale(model[0].value), false, "deepskyblue");
-		paint(airAngle, "air", "airLine", airScale(model[0].value), false, "deepskyblue");
+		
+//		paint(temperatureAngle, "temperatureTarget", temperatureScale(model[0].target), "10,10", "black", model[0].lineColor);
+		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale);
+		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[0].history, airScale);
+		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[0].history, luminosityScale);
+		
+		
 		
 		var comfortCircleRadius = 100;
 		var comfortValue = 96;
@@ -166,81 +240,138 @@ function SampleReport(viewId){
 			;
 		comfortText.exit().remove();
 		comfortText.transition().duration(600)
-			.text(function(d,i) {return d.value;})
+			.text(function(d,i) {return d.value;});
+			
+			
+			
+			
 	}
-		
-		
+	this.model = null;
+	
 	this.setData = function(data){
-		var tMax = d3.max(data.result[0].chs[0].vals, function(d){return d.val;})
-		var tMin = d3.min(data.result[0].chs[0].vals, function(d){return d.val;})
+		console.debug("received data ",data);
+		var newTemperature = data.temperature;
+		var newLuminosity = data.luminosity;
+		var newAir = data.airQuality;
+		var historyTemperature = this.model?this.model[0].history:[];
+		var historyAir = this.model?this.model[1].history:[];
+		var historyLuminosity = this.model?this.model[2].history:[];
+		historyTemperature.unshift(newTemperature);
+		historyAir.unshift(newAir);
+		historyLuminosity.unshift(newLuminosity);
+		if(historyTemperature.length>6){
+			historyTemperature.pop();
+		}
+		if(historyAir.length>6){
+			historyAir.pop();
+		}
+		if(historyLuminosity.length>6){
+			historyLuminosity.pop();
+		}
+		var tMax = d3.max(historyTemperature);
+		var tMin = d3.min(historyTemperature);
 		
-//		var model = [{
-//				label:"Temperature",
-//				value:data.result[0].chs[0].vals[0].val,
+		var airMax = d3.max(historyAir);
+		var airMin = d3.min(historyAir);
+		var luxMax = d3.max(historyLuminosity);
+		var luxMin = d3.min(historyLuminosity);
+		var model = [{
+			label:"TempÃ©rature",
+			value:newTemperature,
+			target:19,
+			max:tMax,
+			min:tMin,
+			unit:"ÂºC",
+			color:"#f0e6d8",
+			ringColor:"#9e6b56",
+			lineColor:"#dd7a55",
+			pieArc:10,
+			history:historyTemperature,
+		},{
+			label:"Air",
+			value:newAir,
+			target:32,
+			max:airMax,
+			min:airMin,
+			color:"#d9e1dc",
+			ringColor:"#063968",
+			lineColor:"#18004d",
+			pieArc:10,
+			history:historyAir,
+		},{
+			label:"LumiÃ¨re",
+			value:newLuminosity,
+			target:14,
+			max:luxMax,
+			min:luxMin,
+			unit:"Lux",
+			color:"#e7ebdb",
+			ringColor:"#7a675b",
+			lineColor:"#468c24",
+			pieArc:10,
+			history:historyLuminosity
+		}
+	];
+		this.model = model;
+		this.update(model);
+		
+	}
+	
+		
+//	this.setData = function(data){
+//		var tMax = d3.max(data.result[0].chs[0].vals, function(d){return d.val;})
+//		var tMin = d3.min(data.result[0].chs[0].vals, function(d){return d.val;})
+//		
+//		var airMax = d3.max(data.result[0].chs[0].vals, function(d){return d.val;})
+//		var airMin = d3.min(data.result[0].chs[0].vals, function(d){return d.val;})
+//		var luxMax = d3.max(data.result[0].chs[0].vals, function(d){return d.val;})
+//		var luxMin = d3.min(data.result[0].chs[0].vals, function(d){return d.val;})
+//		var self = this;
+//		var index = 0;
+//		
+////		setTimeout(function(){
+//		setInterval(function(){
+//			var model = [{
+//				label:"TempÃ©rature",
+//				value:data.result[0].chs[0].vals[index].val,
 //				target:19,
 //				max:tMax,
 //				min:tMin,
-//				unit:"¼C",
-//				color:"#7f7f00",
-//			},{
-//				label:"Lumire",
-//				value:30,
-//				target:18,
-//				max:30,
-//				min:12,
-//				unit:"Lux",
-//				color:"#333",
+//				unit:"ÂºC",
+//				color:"#f0e6d8",
+//				ringColor:"#9e6b56",
+//				lineColor:"#dd7a55",
+//				pieArc:10,
+//
 //			},{
 //				label:"Air",
-//				value:100,
-//				target:100,
-//				max:120,
-//				min:80,
-//				color:"#700",
+//				value:data.result[0].chs[0].vals[index].val,
+//				target:32,
+//				max:airMax,
+//				min:airMin,
+//				color:"#d9e1dc",
+//				ringColor:"#063968",
+//				lineColor:"#18004d",
+//				pieArc:10,
+//			},{
+//				label:"LumiÃ¨re",
+//				value:data.result[0].chs[0].vals[index].val,
+//				target:14,
+//				max:luxMax,
+//				min:luxMin,
+//				unit:"Lux",
+//				color:"#e7ebdb",
+//				ringColor:"#7a675b",
+//				lineColor:"#468c24",
+//				pieArc:10,
 //			}
 //		];
-		console.debug("setData");
-	 	
-//		this.update(model);
-		var self = this;
-		var index = 0;
-		
-		setInterval(function(){
-			console.debug("boucling", data.result[0].chs[0].vals[index].val);
-			var model = [{
-				label:"Temperature",
-				value:data.result[0].chs[0].vals[index].val,
-				target:19,
-				max:tMax,
-				min:tMin,
-				unit:"¼C",
-				color:"#f0e6d8",
-				pieArc:10,
-			},{
-				label:"Lumire",
-				value:30,
-				target:18,
-				max:30,
-				min:12,
-				unit:"Lux",
-				color:"#e7ebdb",
-				pieArc:10,
-			},{
-				label:"Air",
-				value:100,
-				target:100,
-				max:120,
-				min:80,
-				color:"#d9e1dc",
-				pieArc:10,
-			}
-		];
-			self.update(model);
-			index++;
-			if(index>=data.result[0].chs[0].vals.length){
-				index = 0;
-			}
-		}, 1000);
-	}
+//			self.update(model);
+//			index++;
+//			if(index>=data.result[0].chs[0].vals.length){
+//				index = 0;
+//			}
+//		}, 1000);
+//	}
 };
 

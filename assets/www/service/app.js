@@ -91,11 +91,14 @@ EnergyPassAPIConsumer.prototype.load = function(callback) {
 
 ////
 // Bind events
-
-bean.on(simone, 'state', function(s) {
-    // do what you want :)
-    console.log(s);
-});
+//
+//var sampleReport = new SampleReport("report");
+//
+//bean.on(simone, 'state', function(s) {
+//    // do what you want :)
+//    console.log(s);
+//    sampleReport.setData(s);
+//});
 
 
 ////

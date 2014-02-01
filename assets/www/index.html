@@ -6,11 +6,11 @@
 <script src="libs/d3.v3.min.js"></script>
 <script src="./libs/bean.js"></script>
 <script src="./libs/jquery-2.0.3.js"></script>
+<script src="./indicators/sampleReport.js"></script>
 <script src="./service/core.js"></script>
 <script src="./service/app.js"></script>
-
 <script src="./service/service.js"></script>
-<script src="./indicators/sampleReport.js"></script>
+
 <link href='http://fonts.googleapis.com/css?family=Oxygen:400,300,700' rel='stylesheet' type='text/css'>
 
 <script>
@@ -28,34 +28,42 @@
 // 	   		sampleReport.setData(res);
 // 	   	});
 		
-		EnergyHack.service({
-			"jsonrpc":"2.0",
-			"method":"energy",
-			"params":[
-			          {
-			        	  "prog":"CERGY01",
-			        	  "build":"BatimentB",
-			        	  "lots":["B123"],
-			        	  "ctx":"GLOBAL",
-			        	  "types":["TEMPER"],
-			        	  "ind":0,
-			        	  "gran":"HOUR", //"LAST","DAY","MONTH","HOUR"
-			        	  "begin":new Date().getTime()-24*60*60*1000,
-			        	  "end":new Date().getTime(),
-			        }],
-			"id":"energyhack007"
-		},function(data){
-			var res = JSON.parse(data);
- 	   		console.debug("service called",res);
-	   		var sampleReport = new SampleReport("report");
-	   		sampleReport.setData(res);
-	   	});
+// 		EnergyHack.service({
+// 			"jsonrpc":"2.0",
+// 			"method":"energy",
+// 			"params":[
+// 			          {
+// 			        	  "prog":"CERGY01",
+// 			        	  "build":"BatimentB",
+// 			        	  "lots":["B123"],
+// 			        	  "ctx":"GLOBAL",
+// 			        	  "types":["TEMPER"],
+// 			        	  "ind":0,
+// 			        	  "gran":"HOUR", //"LAST","DAY","MONTH","HOUR"
+// 			        	  "begin":new Date().getTime()-24*60*60*1000,
+// 			        	  "end":new Date().getTime(),
+// 			        }],
+// 			"id":"energyhack007"
+// 		},function(data){
+// 			var res = JSON.parse(data);
+//  	   		console.debug("service called",res);
+// 	   		var sampleReport = new SampleReport("report");
+// 	   		sampleReport.setData(res);
+// 	   	});
 		
-		// var sampleReport = new SampleReport("report");
-		// sampleReport.setData({});
+
+		var sampleReport = new SampleReport("report");
+
+		bean.on(simone, 'state', function(s) {
+		    // do what you want :)
+		    console.log(s);
+		    sampleReport.setData(s);
+		});
+
 	}
 
 </script>
+
 </head>
 <body onLoad="initApp();">
 	
