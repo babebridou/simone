@@ -101,7 +101,7 @@ LUXConsumer.prototype.consume = function() {
     var that = this,
         length = 24,
         stateIndex = 0,
-        minValue = 120,
+        minValue = 0,
         maxValue = 240,
         deviation = 3,
         scale = Proba.norm(length/2, length/2, deviation);
@@ -132,6 +132,8 @@ bean.on(simone, 'state', function(s) {
 
 ////
 // Run the consumers
+
+// simone.configure({limit:3});
 
 var energyPassConsumer = new EnergyPassAPIConsumer();
 simone.facade.addConsumer(energyPassConsumer);

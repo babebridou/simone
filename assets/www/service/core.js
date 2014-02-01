@@ -74,21 +74,34 @@ var simone = (function() {
     /////////////////////////////////////////////
     // Simone Core
 
-    function SimoneCore() {
-        this.initialize();
+    function SimoneCore(options) {
+        options = options || {};
+        this.initialize(options);
     };
 
-    SimoneCore.prototype.initialize = function() {
+    SimoneCore.prototype.configure = function(options) {
+        this.eventStateLimit = options.limit || -1;
+        this.eventStateCount = 0;
+    };
+
+    SimoneCore.prototype.initialize = function(options) {
         this.facade = new Facade();
         bean.on(this.facade, 'newState', this.handleNewState.bind(this));
+
+        this.configure(options);
     };
 
     SimoneCore.prototype.handleNewState = function(state) {
+        if (this.eventStateLimit != -1 && this.eventStateCount >= this.eventStateLimit) {
+            return;
+        }
+
+        this.eventStateCount++;
         bean.fire(this, 'state', [state]);
     };
 
 
-    // expose properties
+    // expose classes
     simoneCore = new SimoneCore();
     simoneCore.State = State;
 
