@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="libs/d3.v3.min.js"></script>
+<script src="./libs/jquery-2.0.3.js"></script>
+<script src="./service/service.js"></script>
+<script>
+	var sel = d3.selectAll('.test').data([1,2,3]);
+	sel.enter().append('p').attr('class','test');
+	sel.exit().remove();
+	sel.transition().duration().text(function(d){return d;});
+	
+	var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
+	var post = {
+			"jsonrpc":"2.0",
+			"method":"energy",
+			"params":[{"prog":"CERGY01","ctx":"GLOBAL","ind":0,"gran":"LAST"}],
+			"id":"energyhack007"
+	};
+   	EnergyHack.sample(function(data){console.debug("service called",data);});
+	
+</script>
+</head>
+<body>
+
+</body>
+</html>
