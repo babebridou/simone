@@ -111,6 +111,6 @@
 // console.log(Penality.forAirQuality(2500));
 
 // test state
-console.log(Penality.forState(new simone.State({temperature:18, luminosity:100, airQuality:1200})));
-console.log(Penality.forState(new simone.State({temperature:19, luminosity:150, airQuality:900})));
-console.log(Penality.forState(new simone.State({temperature:16, luminosity:100, airQuality:1800})));
+// console.log(Penality.forState(new simone.State({temperature:18, luminosity:100, airQuality:1200})));
+// console.log(Penality.forState(new simone.State({temperature:19, luminosity:150, airQuality:900})));
+// console.log(Penality.forState(new simone.State({temperature:16, luminosity:100, airQuality:1800})));
