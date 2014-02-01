@@ -6,24 +6,26 @@
 <script src="libs/d3.v3.min.js"></script>
 <script src="./libs/jquery-2.0.3.js"></script>
 <script src="./service/service.js"></script>
+<script src="./indicators/sampleReport.js"></script>
+
 <script>
-	var sel = d3.selectAll('.test').data([1,2,3]);
-	sel.enter().append('p').attr('class','test');
-	sel.exit().remove();
-	sel.transition().duration().text(function(d){return d;});
+
 	
-	var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
-	var post = {
-			"jsonrpc":"2.0",
-			"method":"energy",
-			"params":[{"prog":"CERGY01","ctx":"GLOBAL","ind":0,"gran":"LAST"}],
-			"id":"energyhack007"
-	};
-   	EnergyHack.sample(function(data){console.debug("service called",data);});
-	
+	function initApp(){
+		var uiScreen = $("<div>").attr("id","uiScreen").appendTo($("body"));
+		var reportDiv = $("<div>").attr("id","report").appendTo(uiScreen);
+		var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
+		
+		EnergyHack.sample(function(data){
+			var res = JSON.parse(data);
+ 	   		console.debug("service called",res);
+	   		var sampleReport = new SampleReport("report");
+	   		sampleReport.setData(res);
+	   	});
+	}
 </script>
 </head>
-<body>
-
+<body onLoad="initApp();">
+	
 </body>
 </html>
