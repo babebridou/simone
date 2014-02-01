@@ -119,7 +119,7 @@ LUXConsumer.prototype.consume = function() {
 
         that.emitData(new simone.State({luminosity: luxValue}));
         stateIndex++;
-    }, 300);
+    }, 2000);
 };
 
 
