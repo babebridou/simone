@@ -7,6 +7,7 @@
 <script src="./libs/jquery-2.0.3.js"></script>
 <script src="./service/service.js"></script>
 <script src="./indicators/sampleReport.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Oxygen:400,300,700' rel='stylesheet' type='text/css'>
 
 <script>
 
@@ -29,10 +30,14 @@
 			"params":[
 			          {
 			        	  "prog":"CERGY01",
+			        	  "build":"BatimentB",
+			        	  "lots":["B123"],
 			        	  "ctx":"GLOBAL",
+			        	  "types":["TEMPER"],
 			        	  "ind":0,
-			        	  "gran":"LAST",
-			        	  
+			        	  "gran":"HOUR", //"LAST","DAY","MONTH","HOUR"
+			        	  "begin":new Date().getTime()-24*60*60*1000,
+			        	  "end":new Date().getTime(),
 			        }],
 			"id":"energyhack007"
 		},function(data){
@@ -41,6 +46,9 @@
 	   		var sampleReport = new SampleReport("report");
 	   		sampleReport.setData(res);
 	   	});
+		
+// 		var sampleReport = new SampleReport("report");
+// 		sampleReport.setData({});
 	}
 </script>
 </head>
