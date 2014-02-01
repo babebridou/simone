@@ -35,8 +35,9 @@ EnergyPassAPIConsumer.prototype.consume = function() {
         var stateIndex = 0,
             timer = setInterval(function(){
                 if (stateIndex >= states.length) {
-                    clearInterval(timer);
-                    return;
+                    // clearInterval(timer);
+                    // return;
+                    stateIndex = 0;
                 }
 
                 that.emitData(states[stateIndex++]);
@@ -108,8 +109,9 @@ LUXConsumer.prototype.consume = function() {
 
     var timer = setInterval(function(){
         if (stateIndex >= length) {
-            clearInterval(timer);
-            return;
+            // clearInterval(timer);
+            // return;
+            stateIndex = 0;
         }
 
         var x = Proba.norm(stateIndex, length/2, deviation),
@@ -117,7 +119,7 @@ LUXConsumer.prototype.consume = function() {
 
         that.emitData(new simone.State({luminosity: luxValue}));
         stateIndex++;
-    }, 2000);
+    }, 300);
 };
 
 
@@ -136,8 +138,9 @@ CO2Consumer.prototype.consume = function() {
 
     var timer = setInterval(function(){
         if (stateIndex >= values.length) {
-            clearInterval(timer);
-            return;
+            // clearInterval(timer);
+            // return;
+            stateIndex = 0;
         }
 
         var co2Value = values[stateIndex];

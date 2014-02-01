@@ -190,7 +190,7 @@ function SampleReport(viewId){
 					}
 				});
 			historyLine.exit().remove();
-			historyLine.transition().duration(1990)
+			historyLine.transition().duration(600)
 			//.delay(function(d,i){if(i<history.length-1){return 0} else return 600;})
 				.style("stroke",lineColor)
 				.attr("d", function(d,i){
@@ -273,7 +273,7 @@ function SampleReport(viewId){
 		historyTemperature.unshift(newTemperature);
 		historyAir.unshift(newAir);
 		historyLuminosity.unshift(newLuminosity);
-		var cutoff= 18;
+		var cutoff= 24;
 		if(historyTemperature.length>cutoff){
 			historyTemperature.pop();
 		}
