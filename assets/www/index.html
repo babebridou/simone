@@ -6,12 +6,14 @@
 <script src="libs/d3.v3.min.js"></script>
 <script src="./libs/bean.js"></script>
 <script src="./libs/jquery-2.0.3.js"></script>
+<script src="./service/theoricset.js"></script>
 <script src="./indicators/sampleReport.js"></script>
+<script src="./indicators/testAlertReport.js"></script>
 <script src="./service/core.js"></script>
 <script src="./service/utils.js"></script>
 <script src="./service/app.js"></script>
 <script src="./service/service.js"></script>
-
+<link href='./css/main.css' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=Oxygen:400,300,700' rel='stylesheet' type='text/css'>
 
 <script>
@@ -20,6 +22,7 @@
 	function initApp(){
 		var uiScreen = $("<div>").attr("id","uiScreen").appendTo($("body"));
 		var reportDiv = $("<div>").attr("id","report").appendTo(uiScreen);
+		var alertDiv = $("<div>").attr("id","alert").appendTo(uiScreen);
 		var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
 		
 // 		EnergyHack.sample(function(data){
@@ -54,12 +57,16 @@
 		
 
 		var sampleReport = new SampleReport("report");
+		var testAlertReport = new AlertReport("alert");
 
 		bean.on(simone, 'state', function(s) {
 		    // do what you want :)
 		    console.log(s);
 		    sampleReport.setData(s);
+		    testAlertReport.setData(s);
 		});
+		
+
 
 	}
 
