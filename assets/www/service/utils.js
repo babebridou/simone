@@ -4,6 +4,19 @@
 
 (function() {
 
+    ////////////////////////////////////////////
+    // Proba
+
+    var Proba = {
+        norm: function(x, mean, deviation) {
+            var factor = 1.0 / (deviation*Math.sqrt(2*Math.PI)),
+                expon = Math.exp(-0.5*Math.pow((x-mean)/deviation, 2));
+            return factor*expon;
+        }
+    };
+
+
+
     /////////////////////////////////////////////
     // Penality
 
@@ -12,18 +25,14 @@
 
         forTemperature: function(temperature) {
             var deviation = 1.6,
-                mean = this.idealTemperature,
-                norm = function(val) {
-                    var factor = 1.0 / (deviation*Math.sqrt(2*Math.PI)),
-                        expon = Math.exp(-0.5*Math.pow((val-mean)/deviation, 2));
-                    return factor*expon;
-                };
+                mean = this.idealTemperature;
 
-            return 1 - Math.abs(norm(19) - norm(temperature));
+            return 1 - Math.abs(Proba.norm(19, mean , deviation) - Proba.norm(temperature, mean, deviation));
         }
     };
 
     // expose the class
+    window.Proba = Proba;
     window.Penality = Penality;
 
 })();
