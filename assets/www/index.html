@@ -16,7 +16,26 @@
 		var reportDiv = $("<div>").attr("id","report").appendTo(uiScreen);
 		var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
 		
-		EnergyHack.sample(function(data){
+// 		EnergyHack.sample(function(data){
+// 			var res = JSON.parse(data);
+//  	   		console.debug("service called",res);
+// 	   		var sampleReport = new SampleReport("report");
+// 	   		sampleReport.setData(res);
+// 	   	});
+		
+		EnergyHack.service({
+			"jsonrpc":"2.0",
+			"method":"energy",
+			"params":[
+			          {
+			        	  "prog":"CERGY01",
+			        	  "ctx":"GLOBAL",
+			        	  "ind":0,
+			        	  "gran":"LAST",
+			        	  
+			        }],
+			"id":"energyhack007"
+		},function(data){
 			var res = JSON.parse(data);
  	   		console.debug("service called",res);
 	   		var sampleReport = new SampleReport("report");

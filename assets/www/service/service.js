@@ -32,7 +32,43 @@ EnergyHack.init = function(){
 		});
 	};
 	
+	_.service = function(post,callback){
+		$.ajax({
+			//use fallback url just so it works
+	// 		url:"https://camel.steria.fr:4043/CamelWebService/energy",
+			url:"https://energypass.fr/CamelProxy/energy.ashx",
+			type:'POST',
+			data:JSON.stringify(post),
+	        success:callback,
+	        beforeSend: function (request){
+	//         	request.setRequestHeader("Authorization", authorizationToken);
+	        	request.setRequestHeader("Content-type", "application/json-rpc");
+	        	request.setRequestHeader("Accept", "application/json-rpc");
+	        	}
+		});
+	};
 	
+	_.test=function(params){
+		var post = {
+				"jsonrpc":"2.0",
+				"method":"energy",
+				"params":[params],
+				"id":"energyhack007"
+		};
+		$.ajax({
+			//use fallback url just so it works
+	// 		url:"https://camel.steria.fr:4043/CamelWebService/energy",
+			url:"https://energypass.fr/CamelProxy/energy.ashx",
+			type:'POST',
+			data:JSON.stringify(post),
+	        success:function(e){console.debug(e);},
+	        beforeSend: function (request){
+	//         	request.setRequestHeader("Authorization", authorizationToken);
+	        	request.setRequestHeader("Content-type", "application/json-rpc");
+	        	request.setRequestHeader("Accept", "application/json-rpc");
+	        	}
+		});
+	}
 	
 };
 EnergyHack.init();
