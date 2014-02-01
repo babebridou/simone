@@ -7,6 +7,8 @@ function SampleReport(viewId){
 			   .attr("class", "centeredg");
 		piesvg.append("g").attr("class", "arc");
 	
+	var duration = 600;	
+		
 	this.update = function(model){
 		var pie = d3.layout.pie()
 	    .sort(null)
@@ -61,7 +63,7 @@ function SampleReport(viewId){
 	    piesvg.selectAll("path.arc")
 			.data(pie(model))
 			.attr("id",function(d,i){return "arcPath_"+i;})
-			.transition().duration(300)
+			.transition().duration(duration)
 			.style("fill", function(d,i){
 				return d.data.color;
 			})
@@ -99,7 +101,7 @@ function SampleReport(viewId){
 		
 		
 		
-		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale){
+		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale, critical){
 			var radiusLollipop = 20;
 			var lineClassName = groupClassName+"Line";
 			var lineFunc = d3.svg.line.radial();
@@ -119,7 +121,7 @@ function SampleReport(viewId){
 				.style("stroke-width",4);
 			temperatureLine.exit().remove();
 		    temperatureLine
-				.transition().duration(600)
+				.transition().duration(duration)
 				.attr("d",function(d){var t = d3LollipopLine(d);
 				return t;})
 				;
@@ -132,7 +134,7 @@ function SampleReport(viewId){
 				.style("stroke-width",4);
 			temperatureLineEnd.exit().remove();
 		    temperatureLineEnd
-				.transition().duration(600)
+				.transition().duration(duration)
 				.attr("d",function(d){var t = d3LollipopLine(d);return t;});
 
 		    var cx = Math.cos(baseAngle-Math.PI/2)*lengthLollipop;
@@ -148,7 +150,7 @@ function SampleReport(viewId){
 		    lollipop.exit().remove();
 			
 			lollipop
-				.transition().duration(600)
+				.transition().duration(duration)
 				.attr("r", function(d){return d.r;})
 			    .attr("cx", function(d){return d.cx;})
 			    .attr("cy", function(d){return d.cy;});
@@ -190,8 +192,8 @@ function SampleReport(viewId){
 					}
 				});
 			historyLine.exit().remove();
-			historyLine.transition().duration(600)
-			//.delay(function(d,i){if(i<history.length-1){return 0} else return 600;})
+			historyLine.transition().duration(duration)
+			//.delay(function(d,i){if(i<history.length-1){return 0} else return duration;})
 				.style("stroke",lineColor)
 				.attr("d", function(d,i){
 					if(i==0){
@@ -214,16 +216,36 @@ function SampleReport(viewId){
 		luminosityScale.range([150,250]);
 		console.debug("temp length",temperatureScale(model[0].value));
 		
+		var temperatureCritical = Penality.forTemperature(model[0].value);
+		var airQualityCritical = Penality.forAirQuality(model[1].value);
+		var luminosityCritical = Penality.forLuminosity(model[2].value);
+		
 //		paint(temperatureAngle, "temperatureTarget", temperatureScale(model[0].target), "10,10", "black", model[0].lineColor);
-		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale);
-		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale);
-		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale);
+		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale, temperatureCritical<0.75);
+		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale,airQualityCritical<0.75);
+		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale, luminosityCritical<0.75);
 		
 		
+		var comfortScale = d3.scale.linear();
+		comfortScale.domain([0,100]);
+		comfortScale.range([150,50]);
 		
-		var comfortCircleRadius = 100;
+		var comfortFontScale = d3.scale.linear();
+		comfortFontScale.domain([0,100]);
+		comfortFontScale.range([150,50]);
 		
-		var comfortValue = 96; //call utils.comfort(model[0].value, model[1].value, model[2].value);
+		
+		var comfortColor = d3.scale.linear();
+		comfortColor.domain([50,80]);
+		comfortColor.range(["red","green"]);
+		var comfortValue = (Penality.forState({
+			temperature:model[0].value,
+			airQuality:model[1].value,
+			luminosity: model[2].value
+			})*100).toFixed(0); //call utils.comfort(model[0].value, model[1].value, model[2].value);
+		
+		var comfortCircleRadius = comfortScale(comfortValue); //100
+		
 		
 		var comfortData = [{r:comfortCircleRadius, cx:0,cy:0,value:comfortValue}];
 		var comfortGroup = piesvg.selectAll("g.comfort").data(comfortData);
@@ -234,27 +256,36 @@ function SampleReport(viewId){
 			
 		var comfortCircle = comfortGroup.selectAll("circle.comfortCircle").data(comfortData);
 		comfortCircle.enter().append("circle").attr("class", "comfortCircle")
-			.style("stroke", "deepskyblue")
+//			.style("stroke", "deepskyblue")
+			.style("stroke", "white")
 			.style("stroke-width",4)
-			.style("fill", "rgba(255,255,255,255)")
+//			.style("fill", "rgba(255,255,255,255)")
+			.style("fill", comfortColor(comfortValue));
+			
 	    comfortCircle.exit().remove();
 		
 		comfortCircle
-			.transition().duration(600)
+			.transition().duration(duration)
 			.attr("r", function(d){return d.r;})
 		    .attr("cx", function(d){return d.cx;})
-		    .attr("cy", function(d){return d.cy;});
+		    .attr("cy", function(d){return d.cy;})
+		    .style("fill", comfortColor(comfortValue));
 		var comfortText = comfortGroup.selectAll("text.comfortText").data(comfortData);
 		comfortText.enter().append("text").attr("class","comfortText")
-			.style("font-size","100px")
+			.style("font-size",comfortFontScale(comfortValue)+"px")
 			.style("font-family","Oxygen")
 			.style("font-weight","bold")
 			.style("text-anchor","middle")
+			.style("stroke", "black")
+			.style("fill", "white")
 			.style("alignment-baseline","central")
+			
 			;
 		comfortText.exit().remove();
-		comfortText.transition().duration(600)
+		comfortText.transition().duration(duration)
+			.style("font-size",comfortFontScale(comfortValue)+"px")
 			.text(function(d,i) {return d.value;});
+			
 			
 			
 			
