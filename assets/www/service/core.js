@@ -17,9 +17,9 @@ var simone = (function() {
     };
 
     State.prototype.initialize = function(data) {
-        this.temperature = data.temperature;
-        this.luminosity = data.luminosity;
-        this.airQuality = data.airQuality;
+        this.temperature = data.temperature || 0;
+        this.luminosity = data.luminosity || 0;
+        this.airQuality = data.airQuality || 0;
     };
 
 
@@ -31,12 +31,34 @@ var simone = (function() {
     };
 
     Facade.prototype.initialize = function() {
-
+        this.refreshFrequency = 60;  // herz unit
+        this.lastRefresh = 0;
+        this.consumers = [];
     };
 
     Facade.prototype.emitState = function(state) {
         bean.fire(this, 'newState', [state]);
     };
+
+    /**
+     * Add an API consumer instance
+     */
+    Facade.prototype.addConsumer = function(consumer) {
+        bean.on(consumer, 'data', this.handleNewData.bind(this));
+        this.consumers.push(consumer);
+    };
+
+    Facade.prototype.handleNewData = function(data) {
+        // check for the refresh frequency to avoid too much refresh
+        // NB: the timestamps are in milliseconds
+        var t = new Date().getTime();
+        if (t - this.lastRefresh < 1000.0/this.refreshFrequency) {
+            return;
+        }
+
+        this.lastRefresh = t;
+        this.emitState(data);
+    }
 
 
     /////////////////////////////////////////////
@@ -58,6 +80,7 @@ var simone = (function() {
 
     // expose properties
     simoneCore = new SimoneCore();
+    simoneCore.State = State;
 
     return simoneCore;
 })();
@@ -83,6 +106,10 @@ var simone = (function() {
 
     APIConsumer.prototype.formatData = function(rawData) {
         console.error("You need to implement this method in the subclass");
+    };
+
+    APIConsumer.prototype.emitData = function(data) {
+        bean.fire(this, 'data', [data]);
     };
 
 
