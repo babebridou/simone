@@ -122,6 +122,33 @@ LUXConsumer.prototype.consume = function() {
 
 
 ////
+// CO2Consumer subclass
+
+var CO2Consumer = function() {
+    simone.APIConsumer.call(this);
+};
+CO2Consumer.prototype = new simone.APIConsumer();
+
+CO2Consumer.prototype.consume = function() {
+    var that = this,
+        stateIndex = 0,
+        values = [2534,2575,2552,2519,2502,2513,2517,2532,2530,2504,2416,2010,1800,1677,1622,1629,1898,1993,2011,1446,846,655,573,508,496,480,461,489,503,491,468,461,459,449,455,478,711,870,981,807,764,754,831,1240,1552,1789,2018,2129];
+
+    var timer = setInterval(function(){
+        if (stateIndex >= values.length) {
+            clearInterval(timer);
+            return;
+        }
+
+        var co2Value = values[stateIndex];
+
+        that.emitData(new simone.State({airQuality: co2Value}));
+        stateIndex++;
+    }, 2000);
+};
+
+
+////
 // Bind events
 
 bean.on(simone, 'state', function(s) {
@@ -142,3 +169,7 @@ energyPassConsumer.consume();
 var luxConsumer = new LUXConsumer();
 simone.facade.addConsumer(luxConsumer);
 luxConsumer.consume();
+
+var co2Consumer = new CO2Consumer();
+simone.facade.addConsumer(co2Consumer);
+co2Consumer.consume();
