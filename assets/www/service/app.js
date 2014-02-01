@@ -1,4 +1,10 @@
-// Simone
+/**
+ * Application main file
+ */
+
+
+////
+// EnergyPassAPIConsumer subclass
 
 var EnergyPassAPIConsumer = function() {
     simone.APIConsumer.call(this);
@@ -83,23 +89,18 @@ EnergyPassAPIConsumer.prototype.load = function(callback) {
 };
 
 
-// bind events
+////
+// Bind events
+
 bean.on(simone, 'state', function(s) {
+    // do what you want :)
     console.log(s);
 });
 
 
-var consum = new EnergyPassAPIConsumer();
-simone.facade.addConsumer(consum);
-consum.consume();
+////
+// Run the consumers
 
-// consum.emitData({'a': "blabla"});
-// consum.emitData({'a': "blabla too much"});
-
-// setTimeout(function() {
-//     consum.emitData({'a': "blabla2"});
-// }, 500)
-// setTimeout(function() {
-//     consum.emitData({'a': "blabla3"});
-// }, 200);
-
+var energyPassConsumer = new EnergyPassAPIConsumer();
+simone.facade.addConsumer(energyPassConsumer);
+energyPassConsumer.consume();
