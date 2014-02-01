@@ -31,6 +31,7 @@
         }
     };
 
+    
     // expose the class
     window.Proba = Proba;
     window.Penality = Penality;

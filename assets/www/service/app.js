@@ -90,6 +90,38 @@ EnergyPassAPIConsumer.prototype.load = function(callback) {
 
 
 ////
+// LUXConsumer subclass
+
+var LUXConsumer = function() {
+    simone.APIConsumer.call(this);
+};
+LUXConsumer.prototype = new simone.APIConsumer();
+
+LUXConsumer.prototype.consume = function() {
+    var that = this,
+        length = 24,
+        stateIndex = 0,
+        minValue = 120,
+        maxValue = 240,
+        deviation = 3,
+        scale = Proba.norm(length/2, length/2, deviation);
+
+    var timer = setInterval(function(){
+        if (stateIndex >= length) {
+            clearInterval(timer);
+            return;
+        }
+
+        var x = Proba.norm(stateIndex, length/2, deviation),
+            luxValue = x/scale*(maxValue-minValue) + minValue;
+
+        that.emitData(new simone.State({luminosity: luxValue}));
+        stateIndex++;
+    }, 2000);
+};
+
+
+////
 // Bind events
 
 bean.on(simone, 'state', function(s) {
@@ -104,3 +136,7 @@ bean.on(simone, 'state', function(s) {
 var energyPassConsumer = new EnergyPassAPIConsumer();
 simone.facade.addConsumer(energyPassConsumer);
 energyPassConsumer.consume();
+
+var luxConsumer = new LUXConsumer();
+simone.facade.addConsumer(luxConsumer);
+luxConsumer.consume();
