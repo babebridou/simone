@@ -15,8 +15,8 @@ function SampleReport(viewId){
 	    });
 		
 		
-		var width = 600;
-	    var height = 600;
+		var width = 800;
+	    var height = 800;
 	    var radius = Math.min(width, height) / 2;
 	    var temperatureAngle = Math.PI/3;
 	    var airAngle = temperatureAngle + 2*Math.PI/3;
@@ -81,16 +81,7 @@ function SampleReport(viewId){
 			.style("fill", "rgba(0,0,0,.1)")
 			.style("stroke" ,"rgba(0,0,0,.2)")
 			.style("font-family","Oxygen")
-//			.text(function(d,i) { 
-//					var pieitem = pie(model)[i];
-//					if(pieitem.endAngle-pieitem.startAngle < 0.5){
-//						return "";
-//					} else {
-//						return d.data.label; 
-//					}
-//				})
 			.append("textPath")
-//				.attr("stroke","rgba(0,0,0,.8)")
 				.attr("startOffset","25%")
 			    .attr("xlink:href", function(d,i){ return "#text-path_"+i})
 			.text(function(d,i) { 
@@ -111,7 +102,10 @@ function SampleReport(viewId){
 		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale){
 			var radiusLollipop = 20;
 			var lineClassName = groupClassName+"Line";
+			var lineFunc = d3.svg.line.radial();
+			var angleStep = (Math.PI*2/3)/24;
 		    var temperatureGroup = piesvg.selectAll("g."+groupClassName).data([[[0,0], [lengthLollipop,baseAngle]]]);
+			
 		    temperatureGroup.enter()
 			.append("g")
 				.attr("class",groupClassName);
@@ -130,7 +124,7 @@ function SampleReport(viewId){
 				return t;})
 				;
 		    
-		    var temperatureLineEnd = temperatureGroup.selectAll("path."+lineClassName+"End").data([[[lengthLollipop+radiusLollipop,baseAngle],[300,baseAngle]]]);
+		    var temperatureLineEnd = temperatureGroup.selectAll("path."+lineClassName+"End").data([[[lengthLollipop+radiusLollipop,baseAngle],[radius,baseAngle]]]);
 			temperatureLineEnd
 				.enter().append("path").attr("class", lineClassName+"End")
 				.style("fill","#000000")
@@ -160,8 +154,25 @@ function SampleReport(viewId){
 			    .attr("cy", function(d){return d.cy;});
 
 			
-			var lineFunc = d3.svg.line.radial();
-			var angleStep = (Math.PI*2/3)/24;
+			var clockLineGroupName = groupClassName+"ClockLineGroup";
+			var clockLineName = groupClassName+"ClockLine";
+			var clockLineGroup = piesvg.selectAll("g."+clockLineGroupName).data([{place:"holder"}]);
+			clockLineGroup.enter().append("g").attr("class", clockLineGroupName);
+			clockLineGroup.exit().remove();
+			var clockLine = clockLineGroup.selectAll("path."+clockLineName).data([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]);
+			clockLine.enter().append("path").attr("class", clockLineName)
+				.style("stroke","black")
+				.style("opacity",0.2)
+				.style("stroke-width",1)
+				.attr("d", function(d,i){
+					if(i>0)
+						return lineFunc([[radius*0.9,baseAngle-i*angleStep],[radius,baseAngle-i*angleStep]]);
+					else
+						return lineFunc([[0,baseAngle-i*angleStep],[0,baseAngle-i*angleStep]]);
+				});
+			clockLine.exit().remove();
+			
+			
 			var historyLineGroupName = groupClassName+"HistoryLineGroup";
 			var historyLineName = groupClassName+"HistoryLine";
 			var historyLineGroup = piesvg.selectAll("g."+historyLineGroupName).data([{place:"holder"}]);
@@ -198,19 +209,22 @@ function SampleReport(viewId){
 		airScale.domain([Math.min(model[1].min,model[1].target),Math.max(model[1].max,model[1].target)]);
 		airScale.range([150,250]);
 		var luminosityScale = d3.scale.linear();
+		console.debug("model luminosity", model[2]);
 		luminosityScale.domain([Math.min(model[2].min,model[2].target),Math.max(model[2].max,model[2].target)]);
 		luminosityScale.range([150,250]);
 		console.debug("temp length",temperatureScale(model[0].value));
 		
 //		paint(temperatureAngle, "temperatureTarget", temperatureScale(model[0].target), "10,10", "black", model[0].lineColor);
 		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale);
-		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[0].history, airScale);
-		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[0].history, luminosityScale);
+		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale);
+		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale);
 		
 		
 		
 		var comfortCircleRadius = 100;
-		var comfortValue = 96;
+		
+		var comfortValue = 96; //call utils.comfort(model[0].value, model[1].value, model[2].value);
+		
 		var comfortData = [{r:comfortCircleRadius, cx:0,cy:0,value:comfortValue}];
 		var comfortGroup = piesvg.selectAll("g.comfort").data(comfortData);
 			comfortGroup.enter()
@@ -259,13 +273,14 @@ function SampleReport(viewId){
 		historyTemperature.unshift(newTemperature);
 		historyAir.unshift(newAir);
 		historyLuminosity.unshift(newLuminosity);
-		if(historyTemperature.length>6){
+		var cutoff= 18;
+		if(historyTemperature.length>cutoff){
 			historyTemperature.pop();
 		}
-		if(historyAir.length>6){
+		if(historyAir.length>cutoff){
 			historyAir.pop();
 		}
-		if(historyLuminosity.length>6){
+		if(historyLuminosity.length>cutoff){
 			historyLuminosity.pop();
 		}
 		var tMax = d3.max(historyTemperature);
@@ -301,7 +316,7 @@ function SampleReport(viewId){
 		},{
 			label:"Lumière",
 			value:newLuminosity,
-			target:14,
+			target:120,
 			max:luxMax,
 			min:luxMin,
 			unit:"Lux",

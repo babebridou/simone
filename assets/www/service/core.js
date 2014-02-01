@@ -17,9 +17,16 @@ var simone = (function() {
     };
 
     State.prototype.initialize = function(data) {
+        data = data || {};
         this.temperature = data.temperature || 0;
         this.luminosity = data.luminosity || 0;
         this.airQuality = data.airQuality || 0;
+    };
+
+    State.prototype.update = function(state) {
+        this.temperature = state.temperature || this.temperature;
+        this.luminosity = state.luminosity || this.luminosity;
+        this.airQuality = state.airQuality || this.airQuality;
     };
 
 
@@ -33,6 +40,7 @@ var simone = (function() {
     Facade.prototype.initialize = function() {
         this.refreshFrequency = 60;  // herz unit
         this.lastRefresh = 0;
+        this.currentState = new State();
         this.consumers = [];
     };
 
@@ -48,7 +56,9 @@ var simone = (function() {
         this.consumers.push(consumer);
     };
 
-    Facade.prototype.handleNewData = function(data) {
+    Facade.prototype.handleNewData = function(state) {
+        this.currentState.update(state);
+
         // check for the refresh frequency to avoid too much refresh
         // NB: the timestamps are in milliseconds
         var t = new Date().getTime();
@@ -57,7 +67,7 @@ var simone = (function() {
         }
 
         this.lastRefresh = t;
-        this.emitState(data);
+        this.emitState(this.currentState);
     }
 
 
@@ -109,6 +119,7 @@ var simone = (function() {
     };
 
     APIConsumer.prototype.emitData = function(data) {
+        // console.log(data)
         bean.fire(this, 'data', [data]);
     };
 
