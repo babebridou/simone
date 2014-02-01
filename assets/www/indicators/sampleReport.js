@@ -7,6 +7,8 @@ function SampleReport(viewId){
 			   .attr("class", "centeredg");
 		piesvg.append("g").attr("class", "arc");
 	
+	var duration = 600;	
+		
 	this.update = function(model){
 		var pie = d3.layout.pie()
 	    .sort(null)
@@ -61,7 +63,7 @@ function SampleReport(viewId){
 	    piesvg.selectAll("path.arc")
 			.data(pie(model))
 			.attr("id",function(d,i){return "arcPath_"+i;})
-			.transition().duration(300)
+			.transition().duration(duration)
 			.style("fill", function(d,i){
 				return d.data.color;
 			})
@@ -119,7 +121,7 @@ function SampleReport(viewId){
 				.style("stroke-width",4);
 			temperatureLine.exit().remove();
 		    temperatureLine
-				.transition().duration(600)
+				.transition().duration(duration)
 				.attr("d",function(d){var t = d3LollipopLine(d);
 				return t;})
 				;
@@ -132,7 +134,7 @@ function SampleReport(viewId){
 				.style("stroke-width",4);
 			temperatureLineEnd.exit().remove();
 		    temperatureLineEnd
-				.transition().duration(600)
+				.transition().duration(duration)
 				.attr("d",function(d){var t = d3LollipopLine(d);return t;});
 
 		    var cx = Math.cos(baseAngle-Math.PI/2)*lengthLollipop;
@@ -148,7 +150,7 @@ function SampleReport(viewId){
 		    lollipop.exit().remove();
 			
 			lollipop
-				.transition().duration(600)
+				.transition().duration(duration)
 				.attr("r", function(d){return d.r;})
 			    .attr("cx", function(d){return d.cx;})
 			    .attr("cy", function(d){return d.cy;});
@@ -190,8 +192,8 @@ function SampleReport(viewId){
 					}
 				});
 			historyLine.exit().remove();
-			historyLine.transition().duration(600)
-			//.delay(function(d,i){if(i<history.length-1){return 0} else return 600;})
+			historyLine.transition().duration(duration)
+			//.delay(function(d,i){if(i<history.length-1){return 0} else return duration;})
 				.style("stroke",lineColor)
 				.attr("d", function(d,i){
 					if(i==0){
@@ -263,7 +265,7 @@ function SampleReport(viewId){
 	    comfortCircle.exit().remove();
 		
 		comfortCircle
-			.transition().duration(600)
+			.transition().duration(duration)
 			.attr("r", function(d){return d.r;})
 		    .attr("cx", function(d){return d.cx;})
 		    .attr("cy", function(d){return d.cy;})
@@ -280,7 +282,7 @@ function SampleReport(viewId){
 			
 			;
 		comfortText.exit().remove();
-		comfortText.transition().duration(600)
+		comfortText.transition().duration(duration)
 			.style("font-size",comfortFontScale(comfortValue)+"px")
 			.text(function(d,i) {return d.value;});
 			
