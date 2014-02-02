@@ -26,7 +26,13 @@ function SampleReport(viewId){
 	});
 	
 	var duration = 600;	
-		
+
+	this.speedChanged = function(transitionSpeed){
+		duration = transitionSpeed;
+		console.debug("transition speed changed", duration);
+		this.update(this.model);
+	}
+	
 	this.update = function(model){
 		var pie = d3.layout.pie()
 	    .sort(null)

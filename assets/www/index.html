@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>Simone!</title>
 <script src="libs/d3.v3.min.js"></script>
 <script src="./libs/bean.js"></script>
 <script src="./libs/jquery-2.0.3.js"></script>
@@ -21,8 +21,36 @@
 	
 	function initApp(){
 		var uiScreen = $("<div>").attr("id","uiScreen").appendTo($("body"));
+		window.simulationDelay = 100;
+		window.transitionDuration = 500;
+		var durationControlDiv = $("<div>").attr("id","durationControl").appendTo(uiScreen);
+		var inputSlider = $("<input>")
+			.attr("id", "speedControl")
+			.attr("type","range")
+			.attr("name", "vitesse de simulation")
+			.attr("min", 1)
+			.attr("max", 10)
+			.on("input change", function(){
+				var speed = $(this).val();
+				console.debug("speed changed ", speed);
+				switch(speed){
+					case 0:
+						window.simulationDelay = 30000*60;
+						window.transitionDuration = 30000*60-10;
+					break;
+					default:
+						window.simulationDelay = 10000/speed;
+						window.transitionDuration = 10000/speed-10;
+						break;
+				}
+				bean.fire(inputSlider,'speedChanged', [window.simulationDelay, window.transitionDuration]);
+			})
+			.appendTo(durationControlDiv);
+		
+		
 		var reportDiv = $("<div>").attr("id","report").appendTo(uiScreen);
 		var alertDiv = $("<div>").attr("id","alert").appendTo(uiScreen);
+		
 		var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
 		
 // 		EnergyHack.sample(function(data){
@@ -66,7 +94,11 @@
 		    testAlertReport.setData(s);
 		});
 		
-
+		bean.on(inputSlider, 'speedChanged', function(simulationSpeed, transitionSpeed) {
+		    // do what you want :)
+		    sampleReport.speedChanged(transitionSpeed);
+		});
+		
 
 	}
 
