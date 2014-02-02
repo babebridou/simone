@@ -12,7 +12,7 @@ function SampleReport(viewId){
 	var comfortData = [];
 	var downMouseX = 0;
 	var downMouseY = 0;
-	
+	var time = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
 	
 	core.on("mouseup", function(){
 		console.debug("mouseup");
@@ -98,7 +98,7 @@ function SampleReport(viewId){
 		var groupOuterText = outerText.enter();
 		groupOuterText.append("defs").append("path")
 		    .attr("id", function(d,i){return "text-path_"+i;})
-		    .attr("d", arcModule(2.5));
+		    .attr("d", arcModule(5));
 
 		groupOuterText
 			.append("text")
@@ -119,7 +119,7 @@ function SampleReport(viewId){
 					} else {
 						return d.data.label; 
 					}
-				})
+				});
 		outerText.exit().remove();
 		
 		
@@ -128,7 +128,7 @@ function SampleReport(viewId){
 		
 		
 		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale, critical, historyTheo, historyTheoAlt, unit, moveCallback){
-			var radiusLollipop = 20;
+			var radiusLollipop = 40;
 			var lineClassName = groupClassName+"Line";
 			var lineFunc = d3.svg.line.radial();
 			var angleStep = (Math.PI*2/3)/24;
@@ -144,7 +144,7 @@ function SampleReport(viewId){
 				.enter().append("path").attr("class", lineClassName)
 				.style("fill","#000000")
 				.style("stroke",lineColor)
-				.style("stroke-width",4);
+				.style("stroke-width",16);
 			temperatureLine.exit().remove();
 		    temperatureLine
 				.transition().duration(duration)
@@ -157,7 +157,7 @@ function SampleReport(viewId){
 				.enter().append("path").attr("class", lineClassName+"End")
 				.style("fill","#000000")
 				.style("stroke",lineColor)
-				.style("stroke-width",4);
+				.style("stroke-width",16);
 			temperatureLineEnd.exit().remove();
 		    temperatureLineEnd
 				.transition().duration(duration)
@@ -171,9 +171,9 @@ function SampleReport(viewId){
 		    var lollipop = temperatureGroup.selectAll("circle."+groupClassName+"lollipop").data([{r:radiusLollipop, cx:cx,cy:cy, history:history}]);
 			lollipop.enter().append("circle").attr("class", groupClassName+"lollipop")
 								.style("stroke", strokecolor)
-								.style("stroke-width",4)
+								.style("stroke-width",8)
 								.style("stroke-dasharray", dasharray)
-								.style("fill", "rgba(255,255,255,0)")
+								.style("fill", "rgba(255,255,255,.2)")
 								.on("mousedown", function(d, i){
 										var history = d.history;
 										mouseDown = true;
@@ -213,6 +213,7 @@ function SampleReport(viewId){
 			
 			lollipop
 				.transition().duration(duration)
+				.style("stroke", strokecolor)
 				.attr("r", function(d){return d.r;})
 			    .attr("cx", function(d){return d.cx;})
 			    .attr("cy", function(d){return d.cy;});
@@ -223,18 +224,25 @@ function SampleReport(viewId){
 			var clockLineGroup = piesvg.selectAll("g."+clockLineGroupName).data([{place:"holder"}]);
 			clockLineGroup.enter().append("g").attr("class", clockLineGroupName);
 			clockLineGroup.exit().remove();
-			var clockLine = clockLineGroup.selectAll("path."+clockLineName).data([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]);
+			var clockLine = clockLineGroup.selectAll("path."+clockLineName).data(time);
 			clockLine.enter().append("path").attr("class", clockLineName)
 				.style("stroke","black")
 				.style("opacity",0.2)
 				.style("stroke-width",1)
-				.attr("d", function(d,i){
-					if(i>0)
-						return lineFunc([[radius*0.9,baseAngle-i*angleStep],[radius,baseAngle-i*angleStep]]);
-					else
-						return lineFunc([[0,baseAngle-i*angleStep],[0,baseAngle-i*angleStep]]);
-				});
+				
 			clockLine.exit().remove();
+			
+			clockLine.transition().duration(duration)
+				.attr("d", function(d,i){
+//						if(((i+d)%24)>0)
+							if(i%6==0){
+								return lineFunc([[radius*0,baseAngle-((d)%24)*angleStep],[radius,baseAngle-((d)%24)*angleStep]]);
+							} else {
+								return lineFunc([[radius*0.9,baseAngle-((d)%24)*angleStep],[radius,baseAngle-((d)%24)*angleStep]]);
+							}
+//						else
+//							return lineFunc([[0,baseAngle-i*angleStep],[0,baseAngle-i*angleStep]]);
+					})
 			
 			if(historyTheo){
 				var historyTheoLineGroupName = groupClassName+"HistoryTheoLineGroup";
@@ -433,7 +441,7 @@ function SampleReport(viewId){
 		var comfortCircle = comfortGroup.selectAll("circle.comfortCircle").data(mouseDown?tooltip:comfortData);
 		comfortCircle.enter().append("circle").attr("class", "comfortCircle")
 //			.style("stroke", "deepskyblue")
-			.style("stroke", "white")
+//			.style("stroke", "white")
 			.style("stroke-width",4)
 //			.style("fill", "rgba(255,255,255,255)")
 			.style("fill", comfortColor(comfortValue));
@@ -452,7 +460,7 @@ function SampleReport(viewId){
 			.style("font-family","Oxygen")
 			.style("font-weight","bold")
 			.style("text-anchor","middle")
-			.style("stroke", "black")
+//			.style("stroke", "black")
 			.style("fill", "white")
 			.style("alignment-baseline","central")
 			
@@ -466,7 +474,23 @@ function SampleReport(viewId){
 			});
 			
 			
-			
+		var gridCircle = comfortGroup.selectAll("circle.gridCircle").data([{r:radius/3, cx:0,cy:0,value:1},
+		                                                                         {r:radius*2/3, cx:0,cy:0,value:1},
+		                                                                         {r:radius, cx:0,cy:0,value:1},]);
+		gridCircle.enter().append("circle").attr("class", "gridCircle")
+//			.style("stroke", "deepskyblue")
+			.style("stroke", "rgba(0,0,0,0.2)")
+			.style("stroke-width",1)
+//			.style("fill", "rgba(255,255,255,255)")
+//			.style("fill", comfortColor(comfortValue));
+		gridCircle.exit().remove();
+		
+		gridCircle
+		.transition().duration(duration)
+		.attr("r", function(d){return d.r;})
+	    .attr("cx", function(d){return d.cx;})
+	    .attr("cy", function(d){return d.cy;})
+	    .style("fill", "transparent");;
 			
 			
 	}
@@ -565,7 +589,8 @@ function SampleReport(viewId){
 			min:tMin,
 			unit:"ºC",
 			color:"#f0e6d8",
-			ringColor:"#9e6b56",
+//			ringColor:"#9e6b56",
+			ringColor:"#dd7a55",
 			lineColor:"#dd7a55",
 			pieArc:10,
 			history:historyTemperature,
@@ -579,7 +604,8 @@ function SampleReport(viewId){
 			min:airMin,
 			unit:"ppm",
 			color:"#d9e1dc",
-			ringColor:"#063968",
+//			ringColor:"#063968",
+			ringColor:"#18004d",
 			lineColor:"#18004d",
 			pieArc:10,
 			history:historyAir,
@@ -593,7 +619,8 @@ function SampleReport(viewId){
 			min:luxMin,
 			unit:"Lux",
 			color:"#e7ebdb",
-			ringColor:"#7a675b",
+//			ringColor:"#7a675b",
+			ringColor:"#468c24",
 			lineColor:"#468c24",
 			pieArc:10,
 			history:historyLuminosity,
@@ -602,6 +629,8 @@ function SampleReport(viewId){
 		}
 	];
 		this.model = model;
+		console.debug("updating at ", new Date().getSeconds());
+		time.forEach(function(d,i){time[i]=(d+1)%24});
 		this.update(model);
 	}
 	
