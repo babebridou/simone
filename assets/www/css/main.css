@@ -171,5 +171,13 @@ body {
 
 #report svg {
     display: block;
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+}
+
+#report .arc.outer {
+    text-transform: uppercase;
+    text-shadow: none;
+    stroke: transparent !important;
 }
