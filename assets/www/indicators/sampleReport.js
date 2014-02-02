@@ -12,7 +12,7 @@ function SampleReport(viewId){
 	var comfortData = [];
 	var downMouseX = 0;
 	var downMouseY = 0;
-	
+	var time = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
 	
 	core.on("mouseup", function(){
 		console.debug("mouseup");
@@ -224,18 +224,25 @@ function SampleReport(viewId){
 			var clockLineGroup = piesvg.selectAll("g."+clockLineGroupName).data([{place:"holder"}]);
 			clockLineGroup.enter().append("g").attr("class", clockLineGroupName);
 			clockLineGroup.exit().remove();
-			var clockLine = clockLineGroup.selectAll("path."+clockLineName).data([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]);
+			var clockLine = clockLineGroup.selectAll("path."+clockLineName).data(time);
 			clockLine.enter().append("path").attr("class", clockLineName)
 				.style("stroke","black")
 				.style("opacity",0.2)
 				.style("stroke-width",1)
-				.attr("d", function(d,i){
-					if(i>0)
-						return lineFunc([[radius*0.9,baseAngle-i*angleStep],[radius,baseAngle-i*angleStep]]);
-					else
-						return lineFunc([[0,baseAngle-i*angleStep],[0,baseAngle-i*angleStep]]);
-				});
+				
 			clockLine.exit().remove();
+			
+			clockLine.transition().duration(duration)
+				.attr("d", function(d,i){
+//						if(((i+d)%24)>0)
+							if(i%6==0){
+								return lineFunc([[radius*0,baseAngle-((d)%24)*angleStep],[radius,baseAngle-((d)%24)*angleStep]]);
+							} else {
+								return lineFunc([[radius*0.9,baseAngle-((d)%24)*angleStep],[radius,baseAngle-((d)%24)*angleStep]]);
+							}
+//						else
+//							return lineFunc([[0,baseAngle-i*angleStep],[0,baseAngle-i*angleStep]]);
+					})
 			
 			if(historyTheo){
 				var historyTheoLineGroupName = groupClassName+"HistoryTheoLineGroup";
@@ -622,6 +629,8 @@ function SampleReport(viewId){
 		}
 	];
 		this.model = model;
+		console.debug("updating at ", new Date().getSeconds());
+		time.forEach(function(d,i){time[i]=(d+1)%24});
 		this.update(model);
 	}
 	
