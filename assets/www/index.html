@@ -2,16 +2,23 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+
+<title>SiMone</title>
+
+<script data-pace-options='{ "eventLag": true }' src="./libs/pace.js"></script>
+<link href="./libs/pace-theme-minimal.css" rel="stylesheet" />
+
 <script src="libs/d3.v3.min.js"></script>
 <script src="./libs/bean.js"></script>
 <script src="./libs/jquery-2.0.3.js"></script>
+<script src="./service/theoricset.js"></script>
 <script src="./indicators/sampleReport.js"></script>
+<script src="./indicators/testAlertReport.js"></script>
 <script src="./service/core.js"></script>
 <script src="./service/utils.js"></script>
 <script src="./service/app.js"></script>
 <script src="./service/service.js"></script>
-
+<link href='./css/main.css' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=Oxygen:400,300,700' rel='stylesheet' type='text/css'>
 
 <script>
@@ -19,7 +26,36 @@
 	
 	function initApp(){
 		var uiScreen = $("<div>").attr("id","uiScreen").appendTo($("body"));
+		window.simulationDelay = 100;
+		window.transitionDuration = 500;
+		var durationControlDiv = $("<div>").attr("id","durationControl").appendTo(uiScreen);
+		var inputSlider = $("<input>")
+			.attr("id", "speedControl")
+			.attr("type","range")
+			.attr("name", "vitesse de simulation")
+			.attr("min", 1)
+			.attr("max", 10)
+			.on("input change", function(){
+				var speed = $(this).val();
+				console.debug("speed changed ", speed);
+				switch(speed){
+					case 0:
+						window.simulationDelay = 30000*60;
+						// window.transitionDuration = 10000-10;
+					break;
+					default:
+						window.simulationDelay = 5000/speed;
+						// window.transitionDuration = 3000/speed-10;
+						break;
+				}
+				bean.fire(inputSlider,'speedChanged', [window.simulationDelay, window.transitionDuration]);
+			})
+			.appendTo(durationControlDiv);
+		
+		
 		var reportDiv = $("<div>").attr("id","report").appendTo(uiScreen);
+		var alertDiv = $("<div>").attr("id","alert").appendTo(uiScreen);
+		
 		var authorizationToken = "Basic TlJKSGFjazp4NTJqU2g2VXIzUw==";
 		
 // 		EnergyHack.sample(function(data){
@@ -54,19 +90,82 @@
 		
 
 		var sampleReport = new SampleReport("report");
+		var model = [{
+			label:"Température",
+			value:3,
+			target:19,
+			max:0,
+			min:0,
+			unit:"ºC",
+			color:"#f0e6d8",
+			ringColor:"#9e6b56",
+			lineColor:"#dd7a55",
+			pieArc:10,
+		},{
+			label:"Air",
+			value:-1400,
+			target:32,
+			max:0,
+			min:0,
+			unit:"ppm",
+			color:"#d9e1dc",
+			ringColor:"#063968",
+			lineColor:"#18004d",
+			pieArc:10,
+		},{
+			label:"Lumière",
+			value:-200,
+			target:120,
+			max:0,
+			min:0,
+			unit:"Lux",
+			color:"#e7ebdb",
+			ringColor:"#7a675b",
+			lineColor:"#468c24",
+			pieArc:10,
+		}
+	];
+		sampleReport.update(model);
+		var testAlertReport = new AlertReport("alert");
 
 		bean.on(simone, 'state', function(s) {
-		    // do what you want :)
 		    console.log(s);
 		    sampleReport.setData(s);
+		    testAlertReport.setData(s);
 		});
 
+		bean.on(inputSlider, 'speedChanged', function(simulationSpeed, transitionSpeed) {
+		    sampleReport.speedChanged(transitionSpeed);
+		    simone.changeRate(simulationSpeed);
+		});
+
+		// wait a little before showing the report
+		uiScreen.hide();
+		setTimeout(function(){ 
+			$('.header').fadeOut();
+			setTimeout(function() {
+				uiScreen.fadeIn();
+			}, 1000);
+		}, 4000);	
 	}
 
 </script>
 
 </head>
 <body onLoad="initApp();">
-	
+	<div class="header">
+	    <div class="title">
+	        <h1 class="title1"><span class="char1">s</span><span class="char2">i</span><span class="char3">m</span><span class="char4">o</span><span class="char5">n</span><span class="char6">e</span></h1>
+	        <h1 class="title2"><span class="char1">s</span><span class="char2">i</span><span class="char3">m</span><span class="char4">o</span><span class="char5">n</span><span class="char6">e</span></h1>
+	    </div>
+	    <div class="subtitle">
+	        <h3>Votre comfort en un clin d'oeil</h3>
+	    </div>
+	</div>
+
+	<script>
+		// animate letters
+		setTimeout(function(){ document.body.className = 'page-loaded' }, 0);
+	</script>
 </body>
 </html>

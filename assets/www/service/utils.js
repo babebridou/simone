@@ -69,7 +69,7 @@
 
             var temperatureWeight = 1.0,
                 luminosityWeight = 0.6,
-                airQualityWeight = 0.5;
+                airQualityWeight = 0.3;
 
             var base = 1.0;
 
