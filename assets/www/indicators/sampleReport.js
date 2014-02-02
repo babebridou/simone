@@ -10,6 +10,8 @@ function SampleReport(viewId){
 	var mouseDown = false;
 	var tooltip = null;
 	var comfortData = [];
+	var downMouseX = 0;
+	var downMouseY = 0;
 	
 	
 	core.on("mouseup", function(){
@@ -26,7 +28,13 @@ function SampleReport(viewId){
 	});
 	
 	var duration = 600;	
-		
+
+	this.speedChanged = function(transitionSpeed){
+		duration = transitionSpeed;
+		console.debug("transition speed changed", duration);
+		this.update(this.model);
+	}
+	
 	this.update = function(model){
 		var pie = d3.layout.pie()
 	    .sort(null)
@@ -160,17 +168,22 @@ function SampleReport(viewId){
 		    
 			
 			
-		    var lollipop = temperatureGroup.selectAll("circle."+groupClassName+"lollipop").data([{r:radiusLollipop, cx:cx,cy:cy}]);
+		    var lollipop = temperatureGroup.selectAll("circle."+groupClassName+"lollipop").data([{r:radiusLollipop, cx:cx,cy:cy, history:history}]);
 			lollipop.enter().append("circle").attr("class", groupClassName+"lollipop")
 								.style("stroke", strokecolor)
 								.style("stroke-width",4)
 								.style("stroke-dasharray", dasharray)
 								.style("fill", "rgba(255,255,255,0)")
-								.on("mousedown", function(d){
-									mouseDown = true;
-									tooltip=[{r:comfortData[0].r, cx:comfortData[0].cx,cy:comfortData[0].cy,value:history[0].toFixed(0)+" "+unit}];
-									console.debug("down on value ", tooltip);
-									self.update(self.model);
+								.on("mousedown", function(d, i){
+										var history = d.history;
+										mouseDown = true;
+										var mouse = d3.mouse(this);
+										downMouseX = mouse[0];
+										downMouseY = mouse[1];
+										tooltip=[{r:comfortData[0].r, cx:comfortData[0].cx,cy:comfortData[0].cy,
+											value:history.length>0?history[0].toFixed(0)+" "+unit:"-"}];
+										console.debug("down on value ", tooltip);
+										self.update(self.model);
 								}).on("mousemove", function(){
 									if(mouseDown){
 										console.debug("moving...");
@@ -179,10 +192,20 @@ function SampleReport(viewId){
 										self.update(self.model);
 									}
 								}).on("touchstart", function(d){
-									mouseDown = true;
-									tooltip=[{r:comfortData[0].r, cx:comfortData[0].cx,cy:comfortData[0].cy,value:history[0].toFixed(0)+" "+unit}];
-									console.debug("touchstart on value ", tooltip);
-									self.update(self.model);
+										var history = d.history;
+										mouseDown = true;
+										downMouseX = mouse[0];
+										downMouseY = mouse[1];
+										tooltip=[{r:comfortData[0].r, cx:comfortData[0].cx,cy:comfortData[0].cy,value:history[0].toFixed(0)+" "+unit}];
+										console.debug("touchstart on value ", tooltip);
+										self.update(self.model);
+								}).on("touchmove", function(){
+									if(mouseDown){
+										console.debug("moving...");
+										if(moveCallback)
+											moveCallback(this);
+										self.update(self.model);
+									}
 								})
 								;
 			
@@ -276,7 +299,7 @@ function SampleReport(viewId){
 						}
 					});
 			}
-			
+			if(history){
 			var historyLineGroupName = groupClassName+"HistoryLineGroup";
 			var historyLineName = groupClassName+"HistoryLine";
 			var historyLineGroup = piesvg.selectAll("g."+historyLineGroupName).data([{place:"holder"}]);
@@ -304,6 +327,7 @@ function SampleReport(viewId){
 						return lineFunc([[scale(history[i-1]),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i)*angleStep]]);
 					}
 				});
+			}
 		}
 		
 		var temperatureScale = d3.scale.linear();
@@ -329,14 +353,53 @@ function SampleReport(viewId){
 			var mouse = d3.mouse(f);
 			var newx = mouse[0];
 			var newy = mouse[1];
-			console.debug(newx, newy);
-			self.model[0].value--;
-			self.model[0].history[0]--;
+			if(newy<downMouseY){
+				console.debug(newx, newy);
+				self.model[0].value++;
+				self.model[0].history[0]++;
+			} else {
+				console.debug(newx, newy);
+				self.model[0].value--;
+				self.model[0].history[0]--;
+			}
 		}
+		
+		var airMoveCallback = function(f){
+			d3.event.preventDefault();
+			var mouse = d3.mouse(f);
+			var newx = mouse[0];
+			var newy = mouse[1];
+			if(newy<downMouseY){
+				console.debug(newx, newy);
+				self.model[1].value++;
+				self.model[1].history[0]++;
+			} else {
+				console.debug(newx, newy);
+				self.model[1].value--;
+				self.model[1].history[0]--;
+			}
+		}
+		
+		var luminosityMoveCallback = function(f){
+			d3.event.preventDefault();
+			var mouse = d3.mouse(f);
+			var newx = mouse[0];
+			var newy = mouse[1];
+			if(newy<downMouseY){
+				console.debug(newx, newy);
+				self.model[2].value++;
+				self.model[2].history[0]++;
+			} else {
+				console.debug(newx, newy);
+				self.model[2].value--;
+				self.model[2].history[0]--;
+			}
+		}
+		
 //		paint(temperatureAngle, "temperatureTarget", temperatureScale(model[0].target), "10,10", "black", model[0].lineColor);
 		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale, temperatureCritical<0.75, model[0].historyTheo, model[0].historyTheoAlt, model[0].unit, temperatureMoveCallback);
-		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale,airQualityCritical<0.75, model[1].historyTheo, model[1].historyTheoAlt, model[1].unit, null);
-		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale, luminosityCritical<0.75, model[2].historyTheo, model[2].historyTheoAlt, model[2].unit, null);
+		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale,airQualityCritical<0.75, model[1].historyTheo, model[1].historyTheoAlt, model[1].unit, airMoveCallback);
+		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale, luminosityCritical<0.75, model[2].historyTheo, model[2].historyTheoAlt, model[2].unit, luminosityMoveCallback);
 		
 		
 		var comfortScale = d3.scale.linear();
@@ -411,7 +474,16 @@ function SampleReport(viewId){
 	this.startHour = -1;
 	this.currentHour = -1;
 	this.theoric = null;
+	var initializing = true;
 	this.setData = function(data){
+		if(!(data.temperature&&data.luminosity&&data.airQuality)){
+			if(initializing){
+				console.debug("skipping",data);
+				return;
+			}
+		} else {
+			initializing = false;
+		}
 		if(this.startHour==-1){
 			this.startHour = new Date().getHours();
 			this.currentHour = this.startHour;
@@ -423,6 +495,7 @@ function SampleReport(viewId){
 				this.currentHour = 0;
 			}
 		}
+		
 //		console.debug("received data ",data);
 		var newTemperature = data.temperature;
 		var newLuminosity = data.luminosity;
@@ -483,6 +556,7 @@ function SampleReport(viewId){
 		}
 		
 		
+		
 		var model = [{
 			label:"Température",
 			value:newTemperature,
@@ -529,7 +603,6 @@ function SampleReport(viewId){
 	];
 		this.model = model;
 		this.update(model);
-		
 	}
 	
 		
