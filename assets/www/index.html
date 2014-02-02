@@ -45,11 +45,11 @@
 				switch(speed){
 					case 0:
 						window.simulationDelay = 30000*60;
-						window.transitionDuration = 30000*60-10;
+						// window.transitionDuration = 10000-10;
 					break;
 					default:
-						window.simulationDelay = 10000/speed;
-						window.transitionDuration = 10000/speed-10;
+						window.simulationDelay = 5000/speed;
+						// window.transitionDuration = 3000/speed-10;
 						break;
 				}
 				bean.fire(inputSlider,'speedChanged', [window.simulationDelay, window.transitionDuration]);
@@ -133,15 +133,14 @@
 		var testAlertReport = new AlertReport("alert");
 
 		bean.on(simone, 'state', function(s) {
-		    // do what you want :)
 		    console.log(s);
 		    sampleReport.setData(s);
 		    testAlertReport.setData(s);
 		});
 
 		bean.on(inputSlider, 'speedChanged', function(simulationSpeed, transitionSpeed) {
-		    // do what you want :)
 		    sampleReport.speedChanged(transitionSpeed);
+		    simone.changeRate(simulationSpeed);
 		});
 
 		// wait a little before showing the report

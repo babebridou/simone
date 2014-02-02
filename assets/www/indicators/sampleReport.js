@@ -31,7 +31,7 @@ function SampleReport(viewId){
 
 	this.speedChanged = function(transitionSpeed){
 		duration = transitionSpeed;
-		console.debug("transition speed changed", duration);
+		// console.debug("transition speed changed", duration);
 		this.update(this.model);
 	}
 	
@@ -524,7 +524,7 @@ function SampleReport(viewId){
 		var luxMin = Math.min(d3.min(historyLuminosity),d3.min(this.theoric,function(d){return d.lumLow;}));
 
 		var newTheoTemperature = this.theoric[this.currentHour].temperature;
-		console.debug("new theo temp",newTheoTemperature);
+		// console.debug("new theo temp",newTheoTemperature);
 		var historyTheoTemperature = this.model?this.model[0].historyTheo:[];
 		historyTheoTemperature.unshift(newTheoTemperature);
 		if(historyTheoTemperature.length>cutoff){
@@ -532,7 +532,7 @@ function SampleReport(viewId){
 		}
 		
 		var newTheoAir = this.theoric[this.currentHour].airQuality;
-		console.debug("new theo air",newTheoAir);
+		// console.debug("new theo air",newTheoAir);
 		var historyTheoAir = this.model?this.model[1].historyTheo:[];
 		historyTheoAir.unshift(newTheoAir);
 		if(historyTheoAir.length>cutoff){
@@ -540,7 +540,7 @@ function SampleReport(viewId){
 		}
 		
 		var newTheoLuminosityLow = this.theoric[this.currentHour].lumLow;
-		console.debug("new theo lum Low",newTheoLuminosityLow);
+		// console.debug("new theo lum Low",newTheoLuminosityLow);
 		var historyTheoLuminosityLow = this.model?this.model[2].historyTheo:[];
 		 historyTheoLuminosityLow.unshift(newTheoLuminosityLow);
 		  if(historyTheoLuminosityLow.length>cutoff){
@@ -548,7 +548,7 @@ function SampleReport(viewId){
 		}
 		
 		var newTheoLuminosityHigh = this.theoric[this.currentHour].lumHigh;
-		console.debug("new theo lum High",newTheoLuminosityHigh);
+		// console.debug("new theo lum High",newTheoLuminosityHigh);
 		var historyTheoLuminosityHigh = this.model?this.model[2].historyTheoAlt:[];
 		historyTheoLuminosityHigh.unshift(newTheoLuminosityHigh);
 		if(historyTheoLuminosityHigh.length>cutoff){

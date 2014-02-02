@@ -32,16 +32,18 @@ EnergyPassAPIConsumer.prototype.consume = function() {
     this.load(function(data){
         var states = that.formatData(data);
 
-        var stateIndex = 0,
-            timer = setInterval(function(){
-                if (stateIndex >= states.length) {
-                    // clearInterval(timer);
-                    // return;
-                    stateIndex = 0;
-                }
+        var stateIndex = 0;
 
-                that.emitData(states[stateIndex++]);
-            }, 2000);
+        clearInterval(that.timer);
+        that.timer = setInterval(function(){
+            if (stateIndex >= states.length) {
+                // clearInterval(timer);
+                // return;
+                stateIndex = 0;
+            }
+
+            that.emitData(states[stateIndex++]);
+        }, that.rate || 2000);
     });
 };
 
@@ -107,7 +109,8 @@ LUXConsumer.prototype.consume = function() {
         deviation = 3,
         scale = Proba.norm(length/2, length/2, deviation);
 
-    var timer = setInterval(function(){
+    clearInterval(this.timer);
+    this.timer = setInterval(function(){
         if (stateIndex >= length) {
             // clearInterval(timer);
             // return;
@@ -119,7 +122,7 @@ LUXConsumer.prototype.consume = function() {
 
         that.emitData(new simone.State({luminosity: luxValue}));
         stateIndex++;
-    }, 2000);
+    }, this.rate || 2000);
 };
 
 
@@ -136,7 +139,8 @@ CO2Consumer.prototype.consume = function() {
         stateIndex = 0,
         values = [2534,2575,2552,2519,2502,2513,2517,2532,2530,2504,2416,2010,1800,1677,1622,1629,1898,1993,2011,1446,846,655,573,508,496,480,461,489,503,491,468,461,459,449,455,478,711,870,981,807,764,754,831,1240,1552,1789,2018,2129];
 
-    var timer = setInterval(function(){
+    clearInterval(this.timer);
+    this.timer = setInterval(function(){
         if (stateIndex >= values.length) {
             // clearInterval(timer);
             // return;
@@ -147,7 +151,7 @@ CO2Consumer.prototype.consume = function() {
 
         that.emitData(new simone.State({airQuality: co2Value}));
         stateIndex++;
-    }, 2000);
+    }, this.rate || 2000);
 };
 
 

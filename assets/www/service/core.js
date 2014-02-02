@@ -68,7 +68,13 @@ var simone = (function() {
 
         this.lastRefresh = t;
         this.emitState(this.currentState);
-    }
+    };
+
+    Facade.prototype.updateConsumersWithRate = function(rate) {
+        for (var idx=0; idx<this.consumers.length; idx++) {
+            this.consumers[idx].changeRate(rate);
+        }
+    };
 
 
     /////////////////////////////////////////////
@@ -98,6 +104,11 @@ var simone = (function() {
 
         this.eventStateCount++;
         bean.fire(this, 'state', [state]);
+    };
+
+    SimoneCore.prototype.changeRate = function(delay) {
+        console.log("delay", delay);
+        this.facade.updateConsumersWithRate(delay);
     };
 
 
@@ -134,6 +145,11 @@ var simone = (function() {
     APIConsumer.prototype.emitData = function(data) {
         // console.log(data)
         bean.fire(this, 'data', [data]);
+    };
+
+    APIConsumer.prototype.changeRate = function(rate) {
+        this.rate = rate;
+        this.consume();
     };
 
 
