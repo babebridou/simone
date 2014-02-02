@@ -1,4 +1,5 @@
 function SampleReport(viewId){
+	var self = this;
 	this.viewId = viewId;
 	var core = d3.select("#"+viewId);
 	var piesvg = core
@@ -6,6 +7,23 @@ function SampleReport(viewId){
 		.append("g")
 			   .attr("class", "centeredg");
 		piesvg.append("g").attr("class", "arc");
+	var mouseDown = false;
+	var tooltip = null;
+	var comfortData = [];
+	
+	
+	core.on("mouseup", function(){
+		console.debug("mouseup");
+		mouseDown = false;
+		tooltip = null;
+		self.update(self.model);
+	});
+	core.on("touchend", function(){
+		console.debug("touchend");
+		mouseDown = false;
+		tooltip = null;
+		self.update(self.model);
+	});
 	
 	var duration = 600;	
 		
@@ -101,7 +119,7 @@ function SampleReport(viewId){
 		
 		
 		
-		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale, critical){
+		var paint = function(baseAngle, groupClassName, lengthLollipop, dasharray, strokecolor, lineColor, history, scale, critical, historyTheo, historyTheoAlt, unit, moveCallback){
 			var radiusLollipop = 20;
 			var lineClassName = groupClassName+"Line";
 			var lineFunc = d3.svg.line.radial();
@@ -140,12 +158,33 @@ function SampleReport(viewId){
 		    var cx = Math.cos(baseAngle-Math.PI/2)*lengthLollipop;
 			var cy = Math.sin(baseAngle-Math.PI/2)*lengthLollipop;
 		    
+			
+			
 		    var lollipop = temperatureGroup.selectAll("circle."+groupClassName+"lollipop").data([{r:radiusLollipop, cx:cx,cy:cy}]);
 			lollipop.enter().append("circle").attr("class", groupClassName+"lollipop")
 								.style("stroke", strokecolor)
 								.style("stroke-width",4)
 								.style("stroke-dasharray", dasharray)
-								.style("fill", "rgba(255,255,255,0)");
+								.style("fill", "rgba(255,255,255,0)")
+								.on("mousedown", function(d){
+									mouseDown = true;
+									tooltip=[{r:comfortData[0].r, cx:comfortData[0].cx,cy:comfortData[0].cy,value:history[0].toFixed(0)+" "+unit}];
+									console.debug("down on value ", tooltip);
+									self.update(self.model);
+								}).on("mousemove", function(){
+									if(mouseDown){
+										console.debug("moving...");
+										if(moveCallback)
+											moveCallback(this);
+										self.update(self.model);
+									}
+								}).on("touchstart", function(d){
+									mouseDown = true;
+									tooltip=[{r:comfortData[0].r, cx:comfortData[0].cx,cy:comfortData[0].cy,value:history[0].toFixed(0)+" "+unit}];
+									console.debug("touchstart on value ", tooltip);
+									self.update(self.model);
+								})
+								;
 			
 		    lollipop.exit().remove();
 			
@@ -174,6 +213,69 @@ function SampleReport(viewId){
 				});
 			clockLine.exit().remove();
 			
+			if(historyTheo){
+				var historyTheoLineGroupName = groupClassName+"HistoryTheoLineGroup";
+				var historyTheoLineName = groupClassName+"HistoryTheoLine";
+				var historyTheoLineGroup = piesvg.selectAll("g."+historyTheoLineGroupName).data([{place:"holder"}]);
+				historyTheoLineGroup.enter().append("g").attr("class", historyTheoLineGroupName);
+				historyTheoLineGroup.exit().remove();
+				var historyTheoLine = historyTheoLineGroup.selectAll("path."+historyTheoLineName).data(historyTheo);
+				historyTheoLine.enter().append("path").attr("class", historyTheoLineName)
+					.style("stroke",lineColor)
+					.style("stroke-width",4)
+					.style("opacity",.3)
+					.attr("d", function(d,i){
+						if(i==0){
+							return lineFunc([[lengthLollipop,baseAngle],[lengthLollipop,baseAngle]]);
+						} else {
+							return lineFunc([[scale(d),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i-1)*angleStep]]);
+						}
+					});
+				historyTheoLine.exit().remove();
+				historyTheoLine.transition().duration(duration)
+				//.delay(function(d,i){if(i<history.length-1){return 0} else return duration;})
+					.style("stroke",lineColor)
+					.style("stroke-dasharray","10,10")
+					.attr("d", function(d,i){
+						if(i==0){
+							return lineFunc([[lengthLollipop,baseAngle],[lengthLollipop,baseAngle]]);
+						} else {
+							return lineFunc([[scale(historyTheo[i-1]),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i)*angleStep]]);
+						}
+					});
+			}
+			
+			if(historyTheoAlt){
+				var historyTheoAltLineGroupName = groupClassName+"HistoryTheoAltLineGroup";
+				var historyTheoAltLineName = groupClassName+"HistoryTheoAltLine";
+				var historyTheoAltLineGroup = piesvg.selectAll("g."+historyTheoAltLineGroupName).data([{place:"holder"}]);
+				historyTheoAltLineGroup.enter().append("g").attr("class", historyTheoAltLineGroupName);
+				historyTheoAltLineGroup.exit().remove();
+				var historyTheoAltLine = historyTheoAltLineGroup.selectAll("path."+historyTheoAltLineName).data(historyTheoAlt);
+				historyTheoAltLine.enter().append("path").attr("class", historyTheoAltLineName)
+					.style("stroke",lineColor)
+					.style("stroke-width",4)
+					.style("opacity",.3)
+					.attr("d", function(d,i){
+						if(i==0){
+							return lineFunc([[lengthLollipop,baseAngle],[lengthLollipop,baseAngle]]);
+						} else {
+							return lineFunc([[scale(d),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i-1)*angleStep]]);
+						}
+					});
+				historyTheoAltLine.exit().remove();
+				historyTheoAltLine.transition().duration(duration)
+				//.delay(function(d,i){if(i<history.length-1){return 0} else return duration;})
+					.style("stroke",lineColor)
+					.style("stroke-dasharray","10,10")
+					.attr("d", function(d,i){
+						if(i==0){
+							return lineFunc([[lengthLollipop,baseAngle],[lengthLollipop,baseAngle]]);
+						} else {
+							return lineFunc([[scale(historyTheoAlt[i-1]),baseAngle-(i-1)*angleStep],[scale(d),baseAngle-(i)*angleStep]]);
+						}
+					});
+			}
 			
 			var historyLineGroupName = groupClassName+"HistoryLineGroup";
 			var historyLineName = groupClassName+"HistoryLine";
@@ -205,25 +307,36 @@ function SampleReport(viewId){
 		}
 		
 		var temperatureScale = d3.scale.linear();
-		temperatureScale.domain([Math.min(model[0].min,model[0].target),Math.max(model[0].max,model[0].target)]);
-		temperatureScale.range([150,250]);
+		var radiusGraph = radius*.8;
+//		temperatureScale.domain([Math.min(model[0].min,model[0].target),Math.max(model[0].max,model[0].target)]);
+		temperatureScale.domain([14,25]);
+		temperatureScale.range([150,radiusGraph]);
 		var airScale = d3.scale.linear();
-		airScale.domain([Math.min(model[1].min,model[1].target),Math.max(model[1].max,model[1].target)]);
-		airScale.range([150,250]);
+//		airScale.domain([Math.min(model[1].min,model[1].target),Math.max(model[1].max,model[1].target)]);
+		airScale.domain([200,2300]);
+		airScale.range([150,radiusGraph]);
 		var luminosityScale = d3.scale.linear();
-		console.debug("model luminosity", model[2]);
-		luminosityScale.domain([Math.min(model[2].min,model[2].target),Math.max(model[2].max,model[2].target)]);
-		luminosityScale.range([150,250]);
-		console.debug("temp length",temperatureScale(model[0].value));
+//		luminosityScale.domain([Math.min(model[2].min,model[2].target),Math.max(model[2].max,model[2].target)]);
+		luminosityScale.domain([0,250]);
+		luminosityScale.range([150,radiusGraph]);
 		
 		var temperatureCritical = Penality.forTemperature(model[0].value);
 		var airQualityCritical = Penality.forAirQuality(model[1].value);
 		var luminosityCritical = Penality.forLuminosity(model[2].value);
 		
+		var temperatureMoveCallback = function(f){
+			d3.event.preventDefault();
+			var mouse = d3.mouse(f);
+			var newx = mouse[0];
+			var newy = mouse[1];
+			console.debug(newx, newy);
+			self.model[0].value--;
+			self.model[0].history[0]--;
+		}
 //		paint(temperatureAngle, "temperatureTarget", temperatureScale(model[0].target), "10,10", "black", model[0].lineColor);
-		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale, temperatureCritical<0.75);
-		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale,airQualityCritical<0.75);
-		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale, luminosityCritical<0.75);
+		paint(temperatureAngle, "temperature", temperatureScale(model[0].value), false, model[0].ringColor, model[0].lineColor, model[0].history, temperatureScale, temperatureCritical<0.75, model[0].historyTheo, model[0].historyTheoAlt, model[0].unit, temperatureMoveCallback);
+		paint(airAngle, "air", airScale(model[1].value), false, model[1].ringColor,model[1].lineColor, model[1].history, airScale,airQualityCritical<0.75, model[1].historyTheo, model[1].historyTheoAlt, model[1].unit, null);
+		paint(luminosityAngle, "luminosity", luminosityScale(model[2].value), false, model[2].ringColor, model[2].lineColor, model[2].history, luminosityScale, luminosityCritical<0.75, model[2].historyTheo, model[2].historyTheoAlt, model[2].unit, null);
 		
 		
 		var comfortScale = d3.scale.linear();
@@ -247,14 +360,14 @@ function SampleReport(viewId){
 		var comfortCircleRadius = comfortScale(comfortValue); //100
 		
 		
-		var comfortData = [{r:comfortCircleRadius, cx:0,cy:0,value:comfortValue}];
-		var comfortGroup = piesvg.selectAll("g.comfort").data(comfortData);
+		comfortData = [{r:comfortCircleRadius, cx:0,cy:0,value:comfortValue}];
+		var comfortGroup = piesvg.selectAll("g.comfort").data(mouseDown?tooltip:comfortData);
 			comfortGroup.enter()
 			.append("g")
 				.attr("class","comfort");
 			comfortGroup.exit().remove();
 			
-		var comfortCircle = comfortGroup.selectAll("circle.comfortCircle").data(comfortData);
+		var comfortCircle = comfortGroup.selectAll("circle.comfortCircle").data(mouseDown?tooltip:comfortData);
 		comfortCircle.enter().append("circle").attr("class", "comfortCircle")
 //			.style("stroke", "deepskyblue")
 			.style("stroke", "white")
@@ -270,7 +383,7 @@ function SampleReport(viewId){
 		    .attr("cx", function(d){return d.cx;})
 		    .attr("cy", function(d){return d.cy;})
 		    .style("fill", comfortColor(comfortValue));
-		var comfortText = comfortGroup.selectAll("text.comfortText").data(comfortData);
+		var comfortText = comfortGroup.selectAll("text.comfortText").data(mouseDown?tooltip:comfortData);
 		comfortText.enter().append("text").attr("class","comfortText")
 			.style("font-size",comfortFontScale(comfortValue)+"px")
 			.style("font-family","Oxygen")
@@ -282,9 +395,12 @@ function SampleReport(viewId){
 			
 			;
 		comfortText.exit().remove();
+		
 		comfortText.transition().duration(duration)
 			.style("font-size",comfortFontScale(comfortValue)+"px")
-			.text(function(d,i) {return d.value;});
+			.text(function(d,i) {
+				return d.value;
+			});
 			
 			
 			
@@ -292,9 +408,22 @@ function SampleReport(viewId){
 			
 	}
 	this.model = null;
-	
+	this.startHour = -1;
+	this.currentHour = -1;
+	this.theoric = null;
 	this.setData = function(data){
-		console.debug("received data ",data);
+		if(this.startHour==-1){
+			this.startHour = new Date().getHours();
+			this.currentHour = this.startHour;
+			this.theoric = Window.theoric();
+			console.debug("HOURS",this.startHour, this.theoric);
+		} else {
+			this.currentHour++;
+			if(this.currentHour>23){
+				this.currentHour = 0;
+			}
+		}
+//		console.debug("received data ",data);
 		var newTemperature = data.temperature;
 		var newLuminosity = data.luminosity;
 		var newAir = data.airQuality;
@@ -314,13 +443,46 @@ function SampleReport(viewId){
 		if(historyLuminosity.length>cutoff){
 			historyLuminosity.pop();
 		}
-		var tMax = d3.max(historyTemperature);
-		var tMin = d3.min(historyTemperature);
+		var tMax = Math.max(d3.max(historyTemperature),d3.max(this.theoric,function(d){return d.temperature;}));
+		var tMin = Math.min(d3.min(historyTemperature),d3.min(this.theoric,function(d){return d.temperature;}));
+		var airMax = Math.max(d3.max(historyAir),d3.max(this.theoric,function(d){return d.airQuality;}));
+		var airMin = Math.min(d3.min(historyAir),d3.min(this.theoric,function(d){return d.airQuality;}));
+		var luxMax = Math.max(d3.max(historyLuminosity),d3.max(this.theoric,function(d){return d.lumHigh;}));
+		var luxMin = Math.min(d3.min(historyLuminosity),d3.min(this.theoric,function(d){return d.lumLow;}));
+
+		var newTheoTemperature = this.theoric[this.currentHour].temperature;
+		console.debug("new theo temp",newTheoTemperature);
+		var historyTheoTemperature = this.model?this.model[0].historyTheo:[];
+		historyTheoTemperature.unshift(newTheoTemperature);
+		if(historyTheoTemperature.length>cutoff){
+			historyTheoTemperature.pop();
+		}
 		
-		var airMax = d3.max(historyAir);
-		var airMin = d3.min(historyAir);
-		var luxMax = d3.max(historyLuminosity);
-		var luxMin = d3.min(historyLuminosity);
+		var newTheoAir = this.theoric[this.currentHour].airQuality;
+		console.debug("new theo air",newTheoAir);
+		var historyTheoAir = this.model?this.model[1].historyTheo:[];
+		historyTheoAir.unshift(newTheoAir);
+		if(historyTheoAir.length>cutoff){
+			historyTheoAir.pop();
+		}
+		
+		var newTheoLuminosityLow = this.theoric[this.currentHour].lumLow;
+		console.debug("new theo lum Low",newTheoLuminosityLow);
+		var historyTheoLuminosityLow = this.model?this.model[2].historyTheo:[];
+		 historyTheoLuminosityLow.unshift(newTheoLuminosityLow);
+		  if(historyTheoLuminosityLow.length>cutoff){
+			historyTheoLuminosityLow.pop();
+		}
+		
+		var newTheoLuminosityHigh = this.theoric[this.currentHour].lumHigh;
+		console.debug("new theo lum High",newTheoLuminosityHigh);
+		var historyTheoLuminosityHigh = this.model?this.model[2].historyTheoAlt:[];
+		historyTheoLuminosityHigh.unshift(newTheoLuminosityHigh);
+		if(historyTheoLuminosityHigh.length>cutoff){
+			historyTheoLuminosityHigh.pop();
+		}
+		
+		
 		var model = [{
 			label:"Température",
 			value:newTemperature,
@@ -333,17 +495,22 @@ function SampleReport(viewId){
 			lineColor:"#dd7a55",
 			pieArc:10,
 			history:historyTemperature,
+			historyTheo:historyTheoTemperature,
+			historyTheoAlt:null
 		},{
 			label:"Air",
 			value:newAir,
 			target:32,
 			max:airMax,
 			min:airMin,
+			unit:"ppm",
 			color:"#d9e1dc",
 			ringColor:"#063968",
 			lineColor:"#18004d",
 			pieArc:10,
 			history:historyAir,
+			historyTheo:historyTheoAir,
+			historyTheoAlt:null
 		},{
 			label:"Lumière",
 			value:newLuminosity,
@@ -355,7 +522,9 @@ function SampleReport(viewId){
 			ringColor:"#7a675b",
 			lineColor:"#468c24",
 			pieArc:10,
-			history:historyLuminosity
+			history:historyLuminosity,
+			historyTheo:historyTheoLuminosityLow,
+			historyTheoAlt:historyTheoLuminosityHigh
 		}
 	];
 		this.model = model;
@@ -419,5 +588,7 @@ function SampleReport(viewId){
 //			}
 //		}, 1000);
 //	}
+	
+	
 };
 
