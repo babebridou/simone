@@ -85,6 +85,42 @@
 		
 
 		var sampleReport = new SampleReport("report");
+		var model = [{
+			label:"Température",
+			value:3,
+			target:19,
+			max:0,
+			min:0,
+			unit:"ºC",
+			color:"#f0e6d8",
+			ringColor:"#9e6b56",
+			lineColor:"#dd7a55",
+			pieArc:10,
+		},{
+			label:"Air",
+			value:-1000,
+			target:32,
+			max:0,
+			min:0,
+			unit:"ppm",
+			color:"#d9e1dc",
+			ringColor:"#063968",
+			lineColor:"#18004d",
+			pieArc:10,
+		},{
+			label:"Lumière",
+			value:-200,
+			target:120,
+			max:0,
+			min:0,
+			unit:"Lux",
+			color:"#e7ebdb",
+			ringColor:"#7a675b",
+			lineColor:"#468c24",
+			pieArc:10,
+		}
+	];
+		sampleReport.update(model);
 		var testAlertReport = new AlertReport("alert");
 
 		bean.on(simone, 'state', function(s) {
