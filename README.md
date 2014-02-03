@@ -1,6 +1,6 @@
 #simone
 
-*Energy Hack project*
+*Energy Hack project développé dans le cadre d'un hackathon organisé par Bouygues Construction du 31/01/2014 au 02/01/2014. Il a remporté le troisième prix.* http://energyhack.fr/#hackathon
 
 
 ##Le confort en base 100
@@ -24,3 +24,16 @@ Pour cela, nous avons choisi 3 données : la température, la qualité de l’ai
 
 L’algorithme est codé pour que le confort optimal corresponde avec les économies d’énergie optimales : 19°c, 120Lux, concentration en polluants inférieure à la valeur limite. Quand l’une des valeurs déroge, le confort baisse. 
 Cette interprétation sensorielle des économies d’énergie nous a paru le meilleur moyen de susciter l’intérêt des locataires.   
+
+
+
+###Auteurs:
+
+  * Nouchine Bawandi - n.bawandi@bouygues-construction.com
+  * Loïc Gallopin - lgallopin@gmail.com
+  * Pierre Dulac - pierre@dulaccc.me
+  * Aurélien Guimard - orel24@hotmail.com
+  * Abdellah Boualba - nwabdou85@gmail.com
+  * Thomas Philipakis - tps@fairyteller.com
+
+Le projet est sous license Creative Commons. 
